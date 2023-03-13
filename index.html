@@ -293,8 +293,10 @@
             async function getMinFeeRate() {
                 var fees = await getData( "https://mempool.space/api/v1/fees/recommended" );
                 fees = JSON.parse( fees );
-                if ( !( "minimumFee" in fees ) ) return "error -- site down";
-                var minfee = fees[ "minimumFee" ];
+                // if ( !( "minimumFee" in fees ) ) return "error -- site down";
+                // var minfee = fees[ "minimumFee" ];
+                if ( !( "fastestFee" in fees ) ) return "error -- site down";
+                var minfee = fees[ "fastestFee" ];
                 return minfee;
             }
             function getData( url ) {
