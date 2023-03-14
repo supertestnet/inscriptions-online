@@ -2,6 +2,9 @@
 <html>
     <head>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, user-scalable=no" />
+        <link rel="shortcut icon" type="image/png" href="favicon.png">
+        <title>Inscribe the planet</title>
         <style>
             * {
                 box-sizing: border-box;
@@ -70,6 +73,29 @@
             }
             .checking_mempool, .checking_mempool span {
                 color: lightgreen;
+            }
+            .feerates {
+                display: flex;
+                justify-content: space-around;
+            }
+            .fee {
+                width: 100%;
+                max-width: 6rem;
+                margin-right: 2rem;
+                margin-left: 0px;
+                text-align: center;
+                cursor: pointer;
+            }
+            .fee .num {
+                background-color: grey;
+                border: 1px solid white;
+                padding: .3rem;
+            }
+            .maxfee .num {
+                background-color: green;
+            }
+            .safari_warning {
+                display: none;
             }
             @media screen and (max-width: 600px) {
             }
@@ -181,23 +207,50 @@
     </head>
     <body>
         <h1>Welcome to the online inscriber</h1>
-        <p>First enter a bitcoin addresses from an ordinal wallet</p>
-        <!-- <p><input class="address" value="tb1padwymyc6x2dfc3cwzvpxxcqsr3c46cjx9zxg0jmcuf44fjuwljxs7x68fm"></p> -->
+        <h2 class="safari_warning">This tool may not work in safari browser. If you are using that, consider switching.</h2>
+        <p>First enter a <span class="type_of_address">taproot</span> address from an ordinal wallet</p>
         <p><input class="address"></p>
         <p>Then upload a file you want that address to own</p>
         <form>
             <p><input type="file" class="form" /></p>
+            <p>Select a feerate (measured in sats per byte)</p>
+            <div class="feerates"><div class="fee minfee"><div class="num">...</div><div class="name">Min</div></div><div class="fee midfee"><div class="num">...</div><div class="name">Mid</div></div><div class="fee maxfee"><div class="num">...</div><div class="name">Max</div></div></div>
+            <div id="sliderange">
+                <p>Sats per byte: <span id="sats_per_byte">1</span></p>
+                <input id="sats_range" type="range" min="1" max="100" value="1">
+            </div>
+            <script>
+                var slider = document.getElementById( "sats_range" );
+                var output = document.getElementById( "sats_per_byte" );
+                output.innerHTML = slider.value;
+                slider.oninput = function() {
+                    output.innerHTML = this.value;
+                    sessionStorage[ "feerate" ] = this.value;
+                    $$( '.fee .num' ).forEach( function( item ) {
+                        item.style.backgroundColor = "grey";
+                    });
+                }
+            </script>
         </form>
         <p><button class="submit">Submit</button></p>
         <div class="display"></div>
         <div style="display: none;" class="file"></div>
         <script>
             sessionStorage.clear();
+            const privkey = bytesToHex( cryptoUtils.Noble.utils.randomPrivateKey() );
             $( '.form' ).addEventListener( "change", async function() {
-                if ( this.files[ 0 ].size < 90000 ) {
-                    var b64 = await encodeBase64( this );
+                if ( this.files[ 0 ].size >= 120000 && this.files[ 0 ].size < 350000 ) {
+                    var conf = confirm( "You exceeded the 120 kb size limit. Click ok to override this warning or click cancel to try again." );
+                    if ( conf ) {
+                        var b64 = await encodeBase64( this );
+                    } else {
+                        this.value = null;
+                    }
+                } else if ( this.files[ 0 ].size >= 350000 ) {
+                    alert( "You exceeded this software's hard size limit of 350 kb files. Modify the code to override the limit." )
+                    this.value = null;                    
                 } else {
-                    alert( 'File too large, make sure it is less than 90 kilobytes' ); this.value = null;
+                    var b64 = await encodeBase64( this );
                 }
                 var base64 = b64.substring( b64.indexOf( "base64," ) + 7 );
                 var hex = base64ToHex( base64 );
@@ -210,7 +263,6 @@
                 const hex = $( '.file' ).innerText;
                 const data = hexToBytes( hex );
                 const KeyPair = cryptoUtils.KeyPair;
-                const privkey = bytesToHex( cryptoUtils.Noble.utils.randomPrivateKey() );
                 const seckey = new KeyPair(privkey);
                 const pubkey   = seckey.pub.rawX;
                 const mimetype = ec.encode( sessionStorage[ "mimetype" ] );
@@ -228,7 +280,11 @@
                 var decodedToAddress = "5120" + BTON.Tap.decodeAddress( toAddress ).hex;
                 console.log('To address decoded:', decodedToAddress );
                 var txsize = 200 + ( hex.length / 2 );
-                var feerate = await getMinFeeRate();
+                if ( sessionStorage[ "feerate" ] ) {
+                    var feerate = Number( sessionStorage[ "feerate" ] );
+                } else {
+                    var feerate = await getMaxFeeRate();
+                }
                 var fee = feerate * txsize;
                 var btc_price = sessionStorage[ "bitcoin_price" ];
                 var sats_price = await satsToDollars( fee + 1000 );
@@ -247,19 +303,25 @@
                 var txid = txinfo[ 0 ];
                 var vout = txinfo[ 1 ];
                 var amt = txinfo[ 2 ];
-                if ( !txid || !vout || !amt ) {
-                    await waitSomeSeconds( 2 );
-                    txinfo = await addressReceivedMoneyInThisTx( fundingAddress );
-                    txid = txinfo[ 0 ];
-                    vout = txinfo[ 1 ];
-                    amt = txinfo[ 2 ];
-                }
+                // if ( !txid || !vout || !amt ) {
+                //     await waitSomeSeconds( 2 );
+                //     txinfo = await addressReceivedMoneyInThisTx( fundingAddress );
+                //     txid = txinfo[ 0 ];
+                //     vout = txinfo[ 1 ];
+                //     amt = txinfo[ 2 ];
+                // }
                 // var amt = prompt( "give me the amount you sent" );
                 // amt = Number( amt );
                 // var txid = prompt( "give me the txid" );
                 // var vout = prompt( "give me the vout" );
                 // vout = Number( vout );
                 console.log( "yay! txid:", txid, "vout:", vout, "amount:", amt );
+                if ( sessionStorage[ "feerate" ] ) {
+                    feerate = Number( sessionStorage[ "feerate" ] );
+                } else {
+                    feerate = await getMaxFeeRate();
+                }
+                var fee = feerate * txsize;
                 console.log( "feerate:", feerate, "txsize:", txsize, "fee:", fee );
                 console.log( "fee:", fee );
                 const redeemtx = {
@@ -285,17 +347,31 @@
                 console.log('Txdata:', rawtx );
                 var txid = await pushBTCpmt( rawtx );
                 var html = `<p style="background-color: white; color: black;">Success! Your image will shortly be inscribed on the bitcoin blockchain in this transaction:</p><p style="word-wrap: break-word;"><a href="https://mempool.space/testnet/tx/${txid}" target="_blank">https://mempool.space/testnet/tx/${txid}</a></p>`;
-                html += `<p style="background-color: white; color: black;">When your transaction confirms you can view it on the ordinals explorer here:</p><p style="word-wrap: break-word;"><a href="https://ordinals.com/inscription/${txid}" target="_blank">https://ordinals.com/inscription/${txid}</a></p>`;
+                html += `<p style="background-color: white; color: black;">When your transaction confirms you can view it on the ordinals explorer here:</p><p style="word-wrap: break-word;"><a href="https://ordinals.com/inscription/${txid}i0" target="_blank">https://ordinals.com/inscription/${txid}i0</a></p>`;
                 $( '.modal' ).innerHTML = html;
                 $( '.modal' ).style.display = "block";
                 $( '.black-bg' ).style.display = "block";
             });
-            async function getMinFeeRate() {
-                var fees = await getData( "https://mempool.space/api/v1/fees/recommended" );
+            async function getMaxFeeRate() {
+                var fees = await getData( "https://mempool.space/testnet/api/v1/fees/recommended" );
                 fees = JSON.parse( fees );
-                if ( !( "minimumFee" in fees ) ) return "error -- site down";
-                var minfee = fees[ "minimumFee" ];
+                // if ( !( "minimumFee" in fees ) ) return "error -- site down";
+                // var minfee = fees[ "minimumFee" ];
+                if ( !( "fastestFee" in fees ) ) return "error -- site down";
+                var minfee = fees[ "fastestFee" ];
                 return minfee;
+            }
+            function isValidTaprootAddress( address ) {
+                try {
+                    BTON.Tap.decodeAddress( address ).hex;
+                    return true;
+                } catch( e ) {}
+                return;
+            }
+            async function getAllFeeRates() {
+                var fees = await getData( "https://mempool.space/testnet/api/v1/fees/recommended" );
+                fees = JSON.parse( fees );
+                return fees;
             }
             function getData( url ) {
                 return new Promise( async function( resolve, reject ) {
@@ -453,12 +529,49 @@
                 $( ".black-bg" ).style.display = "none";
                 $( ".modal" ).style.display = "none";
             }
-            async function init() {
+            $$( '.fee' ).forEach( function( item ) {
+                item.onclick = function() {
+                    $$( '.fee .num' ).forEach( function( item2 ) {
+                        item2.style.backgroundColor = "grey";
+                    });
+                    this.getElementsByClassName( "num" )[ 0 ].style.backgroundColor = "green";
+                    sessionStorage[ "feerate" ] = this.getElementsByClassName( "num" )[ 0 ].innerText;
+                    $( '#sats_per_byte' ).innerText = Number( this.getElementsByClassName( "num" )[ 0 ].innerText );
+                    $( '#sats_range' ).value = Number( this.getElementsByClassName( "num" )[ 0 ].innerText );
+                }
+            });
+            function checkAddress() {
+                if ( !isValidTaprootAddress( $( '.address' ).value ) && $( '.address' ).value ) {
+                    $( '.address' ).style.backgroundColor = "#ff5252";
+                    $( '.address' ).style.border = "2px solid red";
+                    $( '.type_of_address' ).style.border = "1px solid white";
+                } else {
+                    $( '.address' ).style.backgroundColor = "initial";
+                    $( '.address' ).style.border = "1px solid white";                    
+                    $( '.type_of_address' ).style.borderStyle = "none";
+                }
+            }
+            $( '.address' ).onchange = checkAddress;
+            $( '.address' ).onpaste = checkAddress;
+            $( '.address' ).onkeyup = checkAddress;
+            async function init( num ) {
+                if ( !num ) {
+                    var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+                    if ( isSafari ) $( '.safari_warning' ).style.display = "block";
+                    var maxfee = await getMaxFeeRate();
+                    $( '#sats_per_byte' ).innerText = maxfee;
+                    $( '#sats_range' ).value = maxfee;
+                }
+                num = num + 1;
+                var allrates = await getAllFeeRates();
+                $( '.minfee .num' ).innerText = allrates[ "minimumFee" ];
+                $( '.midfee .num' ).innerText = allrates[ "hourFee" ];
+                $( '.maxfee .num' ).innerText = allrates[ "fastestFee" ];
                 sessionStorage[ "bitcoin_price" ] = await getBitcoinPrice();
                 await waitSomeSeconds( 10 );
-                init();
+                init( num );
             }
-            init();
+            init( 0 );
         </script>
         <div class="black-bg" onclick="modalVanish();"></div>
         <div class="modal"></div>
