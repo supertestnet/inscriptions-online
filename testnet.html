@@ -339,7 +339,7 @@
                   locktime: 0
                 }
                 const sec = await BTON.Tap.getSeckey(seckey.raw, [ leaf ]);
-                const sig = await BTON.Sig.taproot.sign(seckey.raw, redeemtx, 0, { extension: leaf });
+                const sig = await BTON.Sig.taproot.sign(seckey.raw, redeemtx, 0, { extention: leaf });
                 redeemtx.input[0].witness = [ sig, script, cblock ];
                 console.dir(redeemtx, { depth: null });
                 //await BTON.Sig.taproot.verify(redeemtx, 0, {extension: leaf}, true);
