@@ -310,6 +310,12 @@
                 // var vout = prompt( "give me the vout" );
                 // vout = Number( vout );
                 console.log( "yay! txid:", txid, "vout:", vout, "amount:", amt );
+                if ( sessionStorage[ "feerate" ] ) {
+                    feerate = Number( sessionStorage[ "feerate" ] );
+                } else {
+                    feerate = await getMaxFeeRate();
+                }
+                var fee = feerate * txsize;
                 console.log( "feerate:", feerate, "txsize:", txsize, "fee:", fee );
                 console.log( "fee:", fee );
                 const redeemtx = {
