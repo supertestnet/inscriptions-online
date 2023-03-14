@@ -94,6 +94,9 @@
             .maxfee .num {
                 background-color: green;
             }
+            .safari_warning {
+                display: none;
+            }
             @media screen and (max-width: 600px) {
             }
         </style>
@@ -204,6 +207,7 @@
     </head>
     <body>
         <h1>Welcome to the online inscriber</h1>
+        <h2 class="safari_warning">This tool may not work in safari browser. If you are using that, consider switching.</h2>
         <p>First enter a <span class="type_of_address">taproot</span> address from an ordinal wallet</p>
         <p><input class="address"></p>
         <p>Then upload a file you want that address to own</p>
@@ -550,6 +554,8 @@
             $( '.address' ).onkeyup = checkAddress;
             async function init( num ) {
                 if ( !num ) {
+                    var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+                    if ( isSafari ) $( '.safari_warning' ).style.display = "block";
                     var maxfee = await getMaxFeeRate();
                     $( '#sats_per_byte' ).innerText = maxfee;
                     $( '#sats_range' ).value = maxfee;
