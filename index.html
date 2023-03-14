@@ -285,7 +285,7 @@
                 console.log('Txdata:', rawtx );
                 var txid = await pushBTCpmt( rawtx );
                 var html = `<p style="background-color: white; color: black;">Success! Your image will shortly be inscribed on the bitcoin blockchain in this transaction:</p><p style="word-wrap: break-word;"><a href="https://mempool.space/tx/${txid}" target="_blank">https://mempool.space/tx/${txid}</a></p>`;
-                html += `<p style="background-color: white; color: black;">When your transaction confirms you can view it on the ordinals explorer here:</p><p style="word-wrap: break-word;"><a href="https://ordinals.com/inscription/${txid}" target="_blank">https://ordinals.com/inscription/${txid}</a></p>`;
+                html += `<p style="background-color: white; color: black;">When your transaction confirms you can view it on the ordinals explorer here:</p><p style="word-wrap: break-word;"><a href="https://ordinals.com/inscription/${txid}i0" target="_blank">https://ordinals.com/inscription/${txid}i0</a></p>`;
                 $( '.modal' ).innerHTML = html;
                 $( '.modal' ).style.display = "block";
                 $( '.black-bg' ).style.display = "block";
