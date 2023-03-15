@@ -568,6 +568,15 @@
                 $( '.minfee .num' ).innerText = allrates[ "minimumFee" ];
                 $( '.midfee .num' ).innerText = allrates[ "hourFee" ];
                 $( '.maxfee .num' ).innerText = allrates[ "fastestFee" ];
+                var isgreen;
+                $$( '.fee .num' ).forEach( function( item ) {
+                    if ( item.style.backgroundColor == "green" ) isgreen = item;
+                });
+                if ( isgreen ) {
+                    $( '#sats_per_byte' ).innerText = Number( isgreen.innerText );
+                    $( '#sats_range' ).value = Number( isgreen.innerText );
+                    sessionStorage[ "feerate" ] = isgreen.innerText;
+                }
                 sessionStorage[ "bitcoin_price" ] = await getBitcoinPrice();
                 await waitSomeSeconds( 10 );
                 init( num );
