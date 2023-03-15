@@ -100,6 +100,10 @@
         </style>
         <script src="https://unpkg.com/@cmdcode/bton@1.0.4"></script>
         <script> const BTON = window.bton </script>
+        <script>
+            var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+            if ( isSafari ) alert( "This website does not work in safari. Please switch to a different browser." );
+        </script>
         <script src="https://unpkg.com/@cmdcode/crypto-utils@1.6.0"></script>
         <script src="https://bundle.run/bech32@2.0.0"></script>
         <script src="https://supertestnet.github.io/bitcoin-chess/js/qrcode.js"></script>
