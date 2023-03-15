@@ -118,7 +118,11 @@
                     if ( "files" in file ) {
                         file = file.files[ 0 ];
                     }
-                    sessionStorage[ "mimetype" ] = file.type;
+                    var mimetype = file.type;
+                    if ( mimetype.includes( "text/plain" ) ) {
+                        mimetype += ";charset=utf-8";
+                    }
+                    sessionStorage[ "mimetype" ] = mimetype;
                     var imgReader = new FileReader();
                     imgReader.onloadend = function() {
                         resolve( imgReader.result.toString() );
