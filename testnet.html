@@ -571,7 +571,7 @@
                 $( '.maxfee .num' ).innerText = allrates[ "fastestFee" ];
                 var isgreen;
                 $$( '.fee .num' ).forEach( function( item ) {
-                    if ( item.style.backgroundColor == "green" ) isgreen = item;
+                    if ( item.style.backgroundColor == "green" || getComputedStyle( item ).backgroundColor == "rgb(0, 128, 0)" ) isgreen = item;
                 });
                 if ( isgreen ) {
                     $( '#sats_per_byte' ).innerText = Number( isgreen.innerText );
