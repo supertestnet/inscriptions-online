@@ -417,6 +417,15 @@
                 } catch( e ) {}
                 return;
             }
+            function isValidJson( content ) {
+                if ( !content ) return;
+                try {  
+                    var json = JSON.parse( content );
+                } catch ( e ) {
+                    return;
+                }
+                return true;
+            }
             async function getAllFeeRates() {
                 var fees = await getData( "https://mempool.space/api/v1/fees/recommended" );
                 fees = JSON.parse( fees );
