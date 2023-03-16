@@ -320,8 +320,10 @@
                 var txsize = 200 + ( hex.length / 2 );
                 if ( sessionStorage[ "feerate" ] ) {
                     var feerate = Number( sessionStorage[ "feerate" ] );
+                    sessionStorage[ "determined_feerate" ] = sessionStorage[ "feerate" ];
                 } else {
                     var feerate = await getMinFeeRate();
+                    sessionStorage[ "determined_feerate" ] = sessionStorage[ "feerate" ];
                 }
                 var fee = feerate * txsize;
                 var btc_price = sessionStorage[ "bitcoin_price" ];
@@ -354,8 +356,8 @@
                 // var vout = prompt( "give me the vout" );
                 // vout = Number( vout );
                 console.log( "yay! txid:", txid, "vout:", vout, "amount:", amt );
-                if ( sessionStorage[ "feerate" ] ) {
-                    feerate = Number( sessionStorage[ "feerate" ] );
+                if ( sessionStorage[ "determined_feerate" ] ) {
+                    feerate = Number( sessionStorage[ "determined_feerate" ] );
                 } else {
                     feerate = await getMinFeeRate();
                 }
