@@ -95,6 +95,13 @@
             .safari_warning {
                 display: none;
             }
+            .registration, .upload_file {
+                text-decoration: underline;
+                cursor: pointer;
+            }
+            .dns_form, .dns_checker, .timer {
+                display: none;
+            }
             @media screen and (max-width: 600px) {
             }
         </style>
@@ -144,6 +151,12 @@
             }
             function bytesToHex( bytes ) {
                 return bytes.reduce( ( str, byte ) => str + byte.toString( 16 ).padStart( 2, "0" ), "" );
+            }
+            function textToHex( text ) {
+                var encoder = new TextEncoder().encode( text );
+                return [...new Uint8Array(encoder)]
+                    .map( x => x.toString( 16 ).padStart( 2, "0" ) )
+                    .join( "" );
             }
             function createQR( content ) {
                 var dataUriPngImage = document.createElement( "img" ),
@@ -212,9 +225,11 @@
         <h2 class="safari_warning">This tool may not work in safari browser. If you are using that, consider switching.</h2>
         <p>First enter a <span class="type_of_address">taproot</span> address from an ordinal wallet</p>
         <p><input class="address"></p>
-        <p>Then upload a file you want that address to own</p>
+        <p class="instructions">Then upload a file you want that address to own or <span class="registration">click here</span> to register a domain name</p>
         <form>
-            <p><input type="file" class="form" /></p>
+            <p class="file_form"><input type="file" class="form"></p>
+            <p class="dns_form"><input class="dns" placeholder="example: lol.sats"></p>
+            <p><button class="dns_checker" type="button">Check availability</button> <span class="timer">61</span></p>
             <p>Select a feerate (measured in sats per byte)</p>
             <div class="feerates"><div class="fee minfee"><div class="num">...</div><div class="name">Min</div></div><div class="fee midfee"><div class="num">...</div><div class="name">Mid</div></div><div class="fee maxfee"><div class="num">...</div><div class="name">Max</div></div></div>
             <div id="sliderange">
@@ -240,6 +255,22 @@
         <script>
             sessionStorage.clear();
             const privkey = bytesToHex( cryptoUtils.Noble.utils.randomPrivateKey() );
+            function showRegister() {
+                $( '.file_form' ).style.display = "none";
+                $( '.dns_form' ).style.display = "block";
+                $( '.dns_checker' ).style.display = "inline";
+                $( '.dns' ).value = "";
+                $( '.instructions' ).innerHTML = `Enter a domain name you want to register or <span class="upload_file">click here</span> to upload a file instead.`;
+                $( '.upload_file' ).onclick = showUploader;
+            }
+            function showUploader() {
+                $( '.file_form' ).style.display = "block";
+                $( '.dns_form' ).style.display = "none";
+                $( '.dns_checker' ).style.display = "none";
+                $( '.instructions' ).innerHTML = `Then upload a file you want that address to own or <span class="registration">click here</span> to register a domain name`;
+                $( '.registration' ).onclick = showRegister;
+            }
+            showUploader();
             $( '.form' ).addEventListener( "change", async function() {
                 if ( this.files[ 0 ].size >= 120000 && this.files[ 0 ].size < 350000 ) {
                     var conf = confirm( "You exceeded the 120 kb size limit. Click ok to override this warning or click cancel to try again." );
@@ -261,6 +292,11 @@
                 $( '.file' ).innerText = hex;
             });
             $( '.submit' ).addEventListener( "click", async function() {
+                if ( $( '.file_form' ).style.display == "none" ) {
+                    sessionStorage[ "mimetype" ] = "text/plain;charset=utf-8";
+                    var domain = {"p":"sns","op":"reg","name":$( '.dns' ).value}
+                    $( '.file' ).innerText = textToHex( JSON.stringify( domain ) );
+                }
                 const ec = new TextEncoder();
                 const hex = $( '.file' ).innerText;
                 const data = hexToBytes( hex );
@@ -523,6 +559,15 @@
                 setTimeout( function() {dotLoop( string );}, 1000 );
             }
             dotLoop( "." );
+            function timer( num ) {
+                if ( !num ) {
+                    $( '.timer' ).style.display = "none";
+                    return;
+                }
+                num = num - 1;
+                $( '.timer' ).innerText = num;
+                setTimeout( function() {timer( num );}, 1000 );
+            }
             function satsToBitcoin( sats ) {
                 if ( sats >= 100000000 ) sats = sats * 10;
                 var string = String( sats ).padStart( 8, "0" ).slice( 0,-9 ) + "." + String( sats ).padStart( 8, "0" ).slice( -9 );
@@ -552,7 +597,7 @@
                 }
             });
             function checkAddress() {
-                if ( !isValidTaprootAddress( $( '.address' ).value ) && $( '.address' ).value ) {
+                if ( $( '.address' ).value && !isValidTaprootAddress( $( '.address' ).value ) ) {
                     $( '.address' ).style.backgroundColor = "#ff5252";
                     $( '.address' ).style.border = "2px solid red";
                     $( '.type_of_address' ).style.border = "1px solid white";
@@ -565,6 +610,28 @@
             $( '.address' ).onchange = checkAddress;
             $( '.address' ).onpaste = checkAddress;
             $( '.address' ).onkeyup = checkAddress;
+            async function isUsedDomain( domain ) {
+                var data = await getData( `https://api.sats.id/names/${domain}` );
+                console.log( "data:", data );
+                data = JSON.parse( data );
+                console.log( "data:", data );
+                if ( "name" in data ) return true;
+                if ( data[ "error" ] == "Too many requests" ) return;
+                return false;
+            }
+            async function checkDomain() {
+                var isUsed = await isUsedDomain( $( '.dns' ).value );
+                if ( $( '.dns' ).value && isUsed ) {
+                    alert( `This domain is already registered, please try a different one` );
+                } else if ( $( '.dns' ).value && isUsed == undefined ) {
+                    timer( 61 );
+                    $( '.timer' ).style.display = "inline";
+                    alert( `You can only check one domain per minute, please try again in another minute` );
+                } else {
+                    alert( `This domain is available, go for it!` );
+                }
+            }
+            $( '.dns_checker' ).onclick = checkDomain;
             async function init( num ) {
                 if ( !num ) {
                     var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
