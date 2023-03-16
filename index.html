@@ -89,7 +89,7 @@
                 border: 1px solid white;
                 padding: .3rem;
             }
-            .maxfee .num {
+            .minfee .num {
                 background-color: green;
             }
             .safari_warning {
@@ -289,7 +289,7 @@
                 if ( sessionStorage[ "feerate" ] ) {
                     var feerate = Number( sessionStorage[ "feerate" ] );
                 } else {
-                    var feerate = await getMaxFeeRate();
+                    var feerate = await getMinFeeRate();
                 }
                 var fee = feerate * txsize;
                 var btc_price = sessionStorage[ "bitcoin_price" ];
@@ -325,7 +325,7 @@
                 if ( sessionStorage[ "feerate" ] ) {
                     feerate = Number( sessionStorage[ "feerate" ] );
                 } else {
-                    feerate = await getMaxFeeRate();
+                    feerate = await getMinFeeRate();
                 }
                 var fee = feerate * txsize;
                 console.log( "feerate:", feerate, "txsize:", txsize, "fee:", fee );
@@ -363,7 +363,16 @@
                 // if ( !( "minimumFee" in fees ) ) return "error -- site down";
                 // var minfee = fees[ "minimumFee" ];
                 if ( !( "fastestFee" in fees ) ) return "error -- site down";
-                var minfee = fees[ "fastestFee" ];
+                var maxfee = fees[ "fastestFee" ];
+                return maxfee;
+            }
+            async function getMinFeeRate() {
+                var fees = await getData( "https://mempool.space/api/v1/fees/recommended" );
+                fees = JSON.parse( fees );
+                if ( !( "minimumFee" in fees ) ) return "error -- site down";
+                var minfee = fees[ "minimumFee" ];
+                // if ( !( "fastestFee" in fees ) ) return "error -- site down";
+                // var maxfee = fees[ "fastestFee" ];
                 return minfee;
             }
             function isValidTaprootAddress( address ) {
@@ -563,9 +572,9 @@
                 if ( !num ) {
                     var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
                     if ( isSafari ) $( '.safari_warning' ).style.display = "block";
-                    var maxfee = await getMaxFeeRate();
-                    $( '#sats_per_byte' ).innerText = maxfee;
-                    $( '#sats_range' ).value = maxfee;
+                    var minfee = await getMinFeeRate();
+                    $( '#sats_per_byte' ).innerText = minfee;
+                    $( '#sats_range' ).value = minfee;
                 }
                 num = num + 1;
                 var allrates = await getAllFeeRates();
