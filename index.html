@@ -539,6 +539,7 @@
             async function addressOnceHadMoney( address ) {
                 var url = "https://mempool.space/api/address/" + address;
                 var nonjson = await getData( url );
+                if ( !isValidJson( nonjson ) ) return false;
                 var json = JSON.parse( nonjson );
                 if ( json[ "chain_stats" ][ "tx_count" ] > 0 || json[ "mempool_stats" ][ "tx_count" ] > 0 ) {
                     return true;
