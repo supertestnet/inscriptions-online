@@ -422,6 +422,15 @@
                 fees = JSON.parse( fees );
                 return fees;
             }
+            function isValidJson( content ) {
+                if ( !content ) return;
+                try {  
+                    var json = JSON.parse( content );
+                } catch ( e ) {
+                    return;
+                }
+                return true;
+            }
             function getData( url ) {
                 return new Promise( async function( resolve, reject ) {
                     function inner_get( url ) {
