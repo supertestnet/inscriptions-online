@@ -416,7 +416,7 @@
 
                 $( '.display' ).append( createQR( qr_value ) );
                 $( '.display' ).innerHTML += `<p class="checking_mempool">Checking the mempool<span class="dots">.</span></p>`;
-                $( '.display' ).innerHTML += `<p>' + ( 1000 * inscriptions.length  ) + ' sats will go to the address</p><p>${total_fee} sats will go to miners as a mining fee</p>`;
+                $( '.display' ).innerHTML += '<p>' + ( 1000 * inscriptions.length  ) + ` sats will go to the address</p><p>${total_fee} sats will go to miners as a mining fee</p>`;
                 $( '.display' ).style.display = "block";
 
                 await loopTilAddressReceivesMoney( fundingAddress, true );
