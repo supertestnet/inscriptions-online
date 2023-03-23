@@ -302,8 +302,8 @@
                     var base64 = b64.substring( b64.indexOf( "base64," ) + 7 );
                     var hex = base64ToHex( base64 );
 
-                    console.log( "hex:", hex );
-                    console.log( "bytes:", hexToBytes( hex ) );
+                    //console.log( "hex:", hex );
+                    //console.log( "bytes:", hexToBytes( hex ) );
 
                     files.push({hex: hex, mimetype : mimetype});
                 }
@@ -368,7 +368,9 @@
                     console.log('Inscription address: ', inscriptionAddress );
                     console.log('Tapkey:', tapkey);
 
-                    var txsize = 200 + ( hex.length / 2 );
+                    // total_costs_sats = amount_inscriptions * ( 10k + ( ( ( file_kb * 1000 ) / 4 ) * fee_rate ) )
+
+                    var txsize = 500 + Math.floor(data.length / 4);
 
                     var feerate = await getMinFeeRate();
                     sessionStorage[ "determined_feerate" ] = sessionStorage[ "feerate" ];
