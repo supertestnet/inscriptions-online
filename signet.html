@@ -105,7 +105,7 @@
             @media screen and (max-width: 600px) {
             }
         </style>
-        <script src="https://unpkg.com/@cmdcode/bton@1.0.3"></script>
+        <script src="bton.min.js"></script>
         <script> const BTON = window.bton </script>
         <script src="https://unpkg.com/@cmdcode/crypto-utils@1.5.11"></script>
         <script src="https://bundle.run/bech32@2.0.0"></script>
@@ -122,14 +122,7 @@
             function encodeBase64( file ) {
                 return new Promise( function( resolve, reject ) {
                     //the next three lines handle the case where an image is passed in from an external site
-                    if ( "files" in file ) {
-                        file = file.files[ 0 ];
-                    }
-                    var mimetype = file.type;
-                    if ( mimetype.includes( "text/plain" ) ) {
-                        mimetype += ";charset=utf-8";
-                    }
-                    sessionStorage[ "mimetype" ] = mimetype;
+
                     var imgReader = new FileReader();
                     imgReader.onloadend = function() {
                         resolve( imgReader.result.toString() );
@@ -227,8 +220,8 @@
         <p><input class="address"></p>
         <p class="instructions">Then upload a file you want that address to own or <span class="registration">click here</span> to register a domain name</p>
         <form>
-            <p class="file_form"><input type="file" class="form"></p>
-            <p class="dns_form"><input class="dns" placeholder="example: lol.sats"></p>
+            <p class="file_form"><input type="file" class="form" multiple></p>
+            <p class="dns_form"><textarea class="dns" placeholder="example: lol.sats"></textarea></p>
             <p><button class="dns_checker" type="button">Check availability</button> <span class="timer">61</span></p>
             <p>Select a feerate (measured in sats per byte)</p>
             <div class="feerates"><div class="fee minfee"><div class="num">...</div><div class="name">Min</div></div><div class="fee midfee"><div class="num">...</div><div class="name">Mid</div></div><div class="fee maxfee"><div class="num">...</div><div class="name">Max</div></div></div>
@@ -273,47 +266,70 @@
 
             showUploader();
 
-            $( '.form' ).addEventListener( "change", async function() {
-                if ( this.files[ 0 ].size >= 120000 && this.files[ 0 ].size < 350000 ) {
-                    var conf = confirm( "You exceeded the 120 kb size limit. Click ok to override this warning or click cancel to try again." );
-                    if ( conf ) {
-                        var b64 = await encodeBase64( this );
-                    } else {
-                        this.value = null;
-                    }
-                } else if ( this.files[ 0 ].size >= 350000 ) {
-                    alert( "You exceeded this software's hard size limit of 350 kb files. Modify the code to override the limit." )
-                    this.value = null;                    
-                } else {
-                    var b64 = await encodeBase64( this );
-                }
-                var base64 = b64.substring( b64.indexOf( "base64," ) + 7 );
-                var hex = base64ToHex( base64 );
-                // console.log( "hex:", hex );
-                // console.log( "bytes:", hexToBytes( hex ) );
-                $( '.file' ).innerText = hex;
-            });
+            let files = [];
 
+            $( '.form' ).addEventListener( "change", async function() {
+
+                for(let i = 0; i < this.files.length; i++)
+                {
+
+                    var b64;
+                    var mimetype = this.files[i].type;
+
+                    if ( mimetype.includes( "text/plain" ) ) {
+
+                        mimetype += ";charset=utf-8";
+                    }
+
+                    if ( this.files[ i ].size >= 120000 && this.files[ i ].size < 350000 ) {
+
+                        var conf = confirm( "You exceeded the 120 kb size limit. Click ok to override this warning or click cancel to try again." );
+
+                        if ( conf ) {
+
+                            b64 = await encodeBase64( this.files[i] );
+                        }
+
+                    } else if ( this.files[ 0 ].size >= 350000 ) {
+
+                        alert( "You exceeded this software's hard size limit of 350 kb files. Modify the code to override the limit." )
+
+                    } else {
+
+                        b64 = await encodeBase64( this.files[i] );
+                    }
+
+                    var base64 = b64.substring( b64.indexOf( "base64," ) + 7 );
+                    var hex = base64ToHex( base64 );
+
+                    console.log( "hex:", hex );
+                    console.log( "bytes:", hexToBytes( hex ) );
+
+                    files.push({hex: hex, mimetype : mimetype});
+                }
+            });
 
             $( '.submit' ).addEventListener( "click", async function() {
 
                 if ( $( '.file_form' ).style.display == "none" ) {
 
-                    sessionStorage[ "mimetype" ] = "text/plain;charset=utf-8";
-                    var domain = {"p":"sns","op":"reg","name":$( '.dns' ).value}
-                    $( '.file' ).innerText = textToHex( JSON.stringify( domain ) );
-                }
+                    let sats_domains = $( '.dns' ).value.split("\n");
 
-                const ec = new TextEncoder();
-                const hex = $( '.file' ).innerText;
-                const data = hexToBytes( hex );
+                    for(let sats_domain in sats_domains)
+                    {
+                        let mimetype = "text/plain;charset=utf-8";
+                        var domain = {"p":"sns","op":"reg","name":sats_domains[sats_domain].trim()};
+                        console.log(domain);
+                        files.push({hex: textToHex( JSON.stringify( domain ) ), mimetype : mimetype});
+                    }
+                }
 
                 const KeyPair = cryptoUtils.KeyPair;
                 const seckey = new KeyPair(privkey);
                 const pubkey   = seckey.pub.rawX;
-                const mimetype = ec.encode( sessionStorage[ "mimetype" ] );
+                const ec = new TextEncoder();
 
-                const init_script   = [
+                const init_script = [
                     pubkey,
                     'OP_CHECKSIG'
                 ];
@@ -322,30 +338,65 @@
                 const [ init_tapkey ] = await BTON.Tap.getPubkey(pubkey, [ init_leaf ]);
                 const init_cblock     = await BTON.Tap.getPath(pubkey, init_leaf);
 
-                const script   = [
-                    pubkey,
-                    'OP_CHECKSIG',
-                    'OP_0',
-                    'OP_IF',
-                    ec.encode('ord'),
-                    '01',
-                    mimetype,
-                    'OP_0',
-                    data,
-                    'OP_ENDIF'
-                ];
+                let inscriptions = [];
+                let total_fee = 0;
 
-                const leaf       = await BTON.Tap.getLeaf(BTON.Script.encode(script));
-                const [ tapkey ] = await BTON.Tap.getPubkey(pubkey, [ leaf ]);
-                const cblock     = await BTON.Tap.getPath(pubkey, leaf);
+                for(let i = 0; i < files.length; i++)
+                {
+                    const hex = files[i].hex;
+                    const data = hexToBytes( hex );
+                    const mimetype = ec.encode( files[i].mimetype );
 
-                console.log('Tapkey:', tapkey);
+                    const script = [
+                        pubkey,
+                        'OP_CHECKSIG',
+                        'OP_0',
+                        'OP_IF',
+                        ec.encode('ord'),
+                        '01',
+                        mimetype,
+                        'OP_0',
+                        data,
+                        'OP_ENDIF'
+                    ];
+
+                    const leaf       = await BTON.Tap.getLeaf(BTON.Script.encode(script));
+                    const [ tapkey ] = await BTON.Tap.getPubkey(pubkey, [ leaf ]);
+                    const cblock     = await BTON.Tap.getPath(pubkey, leaf);
+                    var inscriptionAddress = BTON.Tap.encodeAddress( tapkey, 'tb' );
+
+                    console.log('Inscription address: ', inscriptionAddress );
+                    console.log('Tapkey:', tapkey);
+
+                    var txsize = 200 + ( hex.length / 2 );
+
+                    var feerate = await getMinFeeRate();
+                    sessionStorage[ "determined_feerate" ] = sessionStorage[ "feerate" ];
+
+                    if ( sessionStorage[ "feerate" ] ) {
+
+                        feerate = Number( sessionStorage[ "feerate" ] );
+                        sessionStorage[ "determined_feerate" ] = sessionStorage[ "feerate" ];
+                    }
+
+                    var fee = feerate * txsize;
+                    total_fee += fee;
+
+                    inscriptions.push(
+                        {
+                            leaf: leaf,
+                            tapkey : tapkey,
+                            cblock : cblock,
+                            inscriptionAddress : inscriptionAddress,
+                            txsize : txsize,
+                            fee : fee,
+                            script : script
+                        }
+                    );
+                }
 
                 var fundingAddress = BTON.Tap.encodeAddress( init_tapkey, 'tb' );
                 console.log('Funding address: ', fundingAddress );
-
-                var inscriptionAddress = BTON.Tap.encodeAddress( tapkey, 'tb' );
-                console.log('Inscription address: ', inscriptionAddress );
 
                 var toAddress = $( '.address' ).value;
                 console.log('Address that will receive the inscription:', toAddress );
@@ -353,32 +404,19 @@
                 var decodedToAddress = "5120" + BTON.Tap.decodeAddress( toAddress ).hex;
                 console.log('To address decoded:', decodedToAddress );
 
-                var txsize = 200 + ( hex.length / 2 );
-
-                if ( sessionStorage[ "feerate" ] ) {
-
-                    var feerate = Number( sessionStorage[ "feerate" ] );
-                    sessionStorage[ "determined_feerate" ] = sessionStorage[ "feerate" ];
-
-                } else {
-
-                    var feerate = await getMinFeeRate();
-                    sessionStorage[ "determined_feerate" ] = sessionStorage[ "feerate" ];
-                }
-
-                var fee = feerate * txsize;
-                var sats_price = await satsToDollars( fee + 1000 );
+                let total_fees = total_fee + ( 1000 * inscriptions.length );
+                var sats_price = await satsToDollars( total_fees );
                 sats_price = Math.floor( sats_price * 100 ) / 100;
 
-                var html = `<p>Please send at least ${fee + 1000} sats ($${sats_price}) to this address:</p><p>${fundingAddress}</p>`;
+                var html = `<p>Please send at least ${total_fees} sats ($${sats_price}) to this address:</p><p>${fundingAddress}</p>`;
                 $( '.display' ).innerHTML = html;
 
-                var qr_value = "bitcoin:" + fundingAddress + "?amount=" + satsToBitcoin( fee + 1000 );
+                var qr_value = "bitcoin:" + fundingAddress + "?amount=" + satsToBitcoin( total_fees );
                 console.log( "qr:", qr_value );
 
                 $( '.display' ).append( createQR( qr_value ) );
                 $( '.display' ).innerHTML += `<p class="checking_mempool">Checking the mempool<span class="dots">.</span></p>`;
-                $( '.display' ).innerHTML += `<p>1000 sats will go to the address</p><p>${fee} sats will go to miners as a mining fee</p>`;
+                $( '.display' ).innerHTML += `<p>' + ( 1000 * inscriptions.length  ) + ' sats will go to the address</p><p>${total_fee} sats will go to miners as a mining fee</p>`;
                 $( '.display' ).style.display = "block";
 
                 await loopTilAddressReceivesMoney( fundingAddress, true );
@@ -391,16 +429,17 @@
 
                 console.log( "yay! txid:", txid, "vout:", vout, "amount:", amt );
 
-                if ( sessionStorage[ "determined_feerate" ] ) {
-                    feerate = Number( sessionStorage[ "determined_feerate" ] );
-                } else {
-                    feerate = await getMinFeeRate();
+                let outputs = [];
+
+                for(let i = 0; i < inscriptions.length; i++)
+                {
+                    outputs.push(
+                        {
+                            value: 1000 + inscriptions[i].fee,
+                            scriptPubKey: '5120' + inscriptions[i].tapkey
+                        }
+                    );
                 }
-
-                var fee = feerate * txsize;
-
-                console.log( "feerate:", feerate, "txsize:", txsize, "fee:", fee );
-                console.log( "fee:", fee );
 
                 const init_redeemtx = {
                     version: 2,
@@ -410,10 +449,7 @@
                         prevout: { value: amt, scriptPubKey: '5120' + init_tapkey },
                         witness: []
                     }],
-                    output:[{
-                        value: amt - fee,
-                        scriptPubKey: '5120' + tapkey
-                    }],
+                    output: outputs,
                     locktime: 0
                 };
 
@@ -427,149 +463,55 @@
 
                 // seeder received everything, now it is time to populate the others
 
-                await loopTilAddressReceivesMoney( inscriptionAddress, false );
-                await waitSomeSeconds( 2 );
-                var txinfo2 = await addressReceivedMoneyInThisTx( inscriptionAddress );
+                async function inscribe(inscription)
+                {
 
-                var txid2 = txinfo2[ 0 ];
-                var vout2 = txinfo2[ 1 ];
-                var amt2 = txinfo2[ 2 ];
+                    await loopTilAddressReceivesMoney( inscription.inscriptionAddress, false );
+                    await waitSomeSeconds( 2 );
+                    var txinfo2 = await addressReceivedMoneyInThisTx( inscription.inscriptionAddress );
 
-                const redeemtx = {
-                    version: 2,
-                    input: [{
-                        txid: txid2,
-                        vout: vout2,
-                        prevout: { value: amt2, scriptPubKey: '5120' + tapkey },
-                        witness: []
-                    }],
-                    output:[{
-                        value: amt2 - fee,
-                        scriptPubKey: decodedToAddress
-                    }],
-                    locktime: 0
-                };
+                    var txid2 = txinfo2[ 0 ];
+                    var vout2 = txinfo2[ 1 ];
+                    var amt2 = txinfo2[ 2 ];
 
-                const sig = await BTON.Sig.taproot.sign(seckey.raw, redeemtx, 0, { extention: leaf });
-                redeemtx.input[0].witness = [ sig, script, cblock ];
+                    const redeemtx = {
+                        version: 2,
+                        input: [{
+                            txid: txid2,
+                            vout: vout2,
+                            prevout: { value: amt2, scriptPubKey: '5120' + inscription.tapkey },
+                            witness: []
+                        }],
+                        output:[{
+                            value: amt2 - inscription.fee,
+                            scriptPubKey: decodedToAddress
+                        }],
+                        locktime: 0
+                    };
 
-                console.dir(redeemtx, { depth: null });
+                    const sig = await BTON.Sig.taproot.sign(seckey.raw, redeemtx, 0, { extention: inscription.leaf });
+                    redeemtx.input[0].witness = [ sig, inscription.script, inscription.cblock ];
 
-                var rawtx2 = BTON.Tx.encode(redeemtx);
-                var _txid2 = await pushBTCpmt( rawtx2 );
+                    console.dir(redeemtx, { depth: null });
 
-                var html = `<p style="background-color: white; color: black;">Success! Your file will shortly be inscribed on the bitcoin blockchain in this transaction:</p><p style="word-wrap: break-word;"><a href="https://mempool.space/signet/tx/${_txid2}" target="_blank">https://mempool.space/signet/tx/${_txid2}</a></p>`;
-                html += `<p style="background-color: white; color: black;">When your transaction confirms you can view it on the ordinals explorer here:</p><p style="word-wrap: break-word;"><a href="https://ordinals.com/inscription/${_txid2}i0" target="_blank">https://ordinals.com/inscription/${_txid2}i0</a></p>`;
+                    var rawtx2 = BTON.Tx.encode(redeemtx);
+                    var _txid2 = await pushBTCpmt( rawtx2 );
 
-                $( '.modal' ).innerHTML = html;
-                $( '.modal' ).style.display = "block";
-                $( '.black-bg' ).style.display = "block";
+                    var html = `<p style="background-color: white; color: black;">Success! Your file will shortly be inscribed on the bitcoin blockchain in this transaction:</p><p style="word-wrap: break-word;"><a href="https://mempool.space/signet/tx/${_txid2}" target="_blank">https://mempool.space/signet/tx/${_txid2}</a></p>`;
+                    html += `<p style="background-color: white; color: black;">When your transaction confirms you can view it on the ordinals explorer here:</p><p style="word-wrap: break-word;"><a href="https://ordinals.com/inscription/${_txid2}i0" target="_blank">https://ordinals.com/inscription/${_txid2}i0</a></p>`;
+                    html += '<hr/>';
 
+                    $( '.modal' ).innerHTML += html;
+                    $( '.modal' ).style.display = "block";
+                    $( '.black-bg' ).style.display = "block";
+                }
+
+                for(let i = 0; i < inscriptions.length; i++)
+                {
+                    inscribe(inscriptions[i]);
+                }
             });
 
-
-            $( '.submit' ).addEventListener( "click2", async function() {
-                if ( $( '.file_form' ).style.display == "none" ) {
-                    sessionStorage[ "mimetype" ] = "text/plain;charset=utf-8";
-                    var domain = {"p":"sns","op":"reg","name":$( '.dns' ).value}
-                    $( '.file' ).innerText = textToHex( JSON.stringify( domain ) );
-                }
-                const ec = new TextEncoder();
-                const hex = $( '.file' ).innerText;
-                console.log("HEX?", hex);
-                const data = hexToBytes( hex );
-                const KeyPair = cryptoUtils.KeyPair;
-                const seckey = new KeyPair(privkey);
-                const pubkey   = seckey.pub.rawX;
-                const mimetype = ec.encode( sessionStorage[ "mimetype" ] );
-                const script   = [ pubkey, 'OP_CHECKSIG', 'OP_0', 'OP_IF', ec.encode('ord'), '01', mimetype, 'OP_0', data, 'OP_ENDIF' ];
-                const leaf       = await BTON.Tap.getLeaf(BTON.Script.encode(script));
-                const [ tapkey ] = await BTON.Tap.getPubkey(pubkey, [ leaf ]);
-                const cblock     = await BTON.Tap.getPath(pubkey, leaf);
-                console.log('Tapkey:', tapkey);
-                var fundingAddress = BTON.Tap.encodeAddress( tapkey, 'tb' );
-                console.log('Funding address: ', fundingAddress );
-                //var toAddress = prompt( "give me the address you your inscription to arrive in and consider using this one: tb1padwymyc6x2dfc3cwzvpxxcqsr3c46cjx9zxg0jmcuf44fjuwljxs7x68fm" );
-                //var toAddress = "tb1padwymyc6x2dfc3cwzvpxxcqsr3c46cjx9zxg0jmcuf44fjuwljxs7x68fm";
-                var toAddress = $( '.address' ).value;
-                console.log('Address that will receive the inscription:', toAddress );
-                var decodedToAddress = "5120" + BTON.Tap.decodeAddress( toAddress ).hex;
-                console.log('To address decoded:', decodedToAddress );
-                var txsize = 200 + ( hex.length / 2 );
-                if ( sessionStorage[ "feerate" ] ) {
-                    var feerate = Number( sessionStorage[ "feerate" ] );
-                    sessionStorage[ "determined_feerate" ] = sessionStorage[ "feerate" ];
-                } else {
-                    var feerate = await getMinFeeRate();
-                    sessionStorage[ "determined_feerate" ] = sessionStorage[ "feerate" ];
-                }
-                var fee = feerate * txsize;
-                var btc_price = sessionStorage[ "bitcoin_price" ];
-                var sats_price = await satsToDollars( fee + 1000 );
-                sats_price = Math.floor( sats_price * 100 ) / 100;
-                var html = `<p>Please send at least ${fee + 1000} sats ($${sats_price}) to this address:</p><p>${fundingAddress}</p>`;
-                $( '.display' ).innerHTML = html;
-                var qr_value = "bitcoin:" + fundingAddress + "?amount=" + satsToBitcoin( fee + 1000 );
-                console.log( "qr:", qr_value );
-                $( '.display' ).append( createQR( qr_value ) );
-                $( '.display' ).innerHTML += `<p class="checking_mempool">Checking the mempool<span class="dots">.</span></p>`;
-                $( '.display' ).innerHTML += `<p>1000 sats will go to the address</p><p>${fee} sats will go to miners as a mining fee</p>`;
-                $( '.display' ).style.display = "block";
-                await loopTilAddressReceivesMoney( fundingAddress );
-                await waitSomeSeconds( 2 );
-                var txinfo = await addressReceivedMoneyInThisTx( fundingAddress );
-                var txid = txinfo[ 0 ];
-                var vout = txinfo[ 1 ];
-                var amt = txinfo[ 2 ];
-                // if ( !txid || !vout || !amt ) {
-                //     await waitSomeSeconds( 2 );
-                //     txinfo = await addressReceivedMoneyInThisTx( fundingAddress );
-                //     txid = txinfo[ 0 ];
-                //     vout = txinfo[ 1 ];
-                //     amt = txinfo[ 2 ];
-                // }
-                // var amt = prompt( "give me the amount you sent" );
-                // amt = Number( amt );
-                // var txid = prompt( "give me the txid" );
-                // var vout = prompt( "give me the vout" );
-                // vout = Number( vout );
-                console.log( "yay! txid:", txid, "vout:", vout, "amount:", amt );
-                if ( sessionStorage[ "determined_feerate" ] ) {
-                    feerate = Number( sessionStorage[ "determined_feerate" ] );
-                } else {
-                    feerate = await getMinFeeRate();
-                }
-                var fee = feerate * txsize;
-                console.log( "feerate:", feerate, "txsize:", txsize, "fee:", fee );
-                console.log( "fee:", fee );
-                const redeemtx = {
-                  version: 2,
-                  input: [{
-                    txid: txid,
-                    vout: vout,
-                    prevout: { value: amt, scriptPubKey: '5120' + tapkey },
-                    witness: []
-                  }],
-                  output:[{
-                    value: amt - fee,
-                    scriptPubKey: decodedToAddress
-                  }],
-                  locktime: 0
-                }
-                const sec = await BTON.Tap.getSeckey(seckey.raw, [ leaf ]);
-                const sig = await BTON.Sig.taproot.sign(seckey.raw, redeemtx, 0, { extention: leaf });
-                redeemtx.input[0].witness = [ sig, script, cblock ];
-                console.dir(redeemtx, { depth: null });
-                //await BTON.Sig.taproot.verify(redeemtx, 0, {extension: leaf}, true);
-                var rawtx = BTON.Tx.encode(redeemtx);
-                console.log('Txdata:', rawtx );
-                var txid = await pushBTCpmt( rawtx );
-                var html = `<p style="background-color: white; color: black;">Success! Your file will shortly be inscribed on the bitcoin blockchain in this transaction:</p><p style="word-wrap: break-word;"><a href="https://mempool.space/signet/tx/${txid}" target="_blank">https://mempool.space/signet/tx/${txid}</a></p>`;
-                html += `<p style="background-color: white; color: black;">When your transaction confirms you can view it on the ordinals explorer here:</p><p style="word-wrap: break-word;"><a href="https://ordinals.com/inscription/${txid}i0" target="_blank">https://ordinals.com/inscription/${txid}i0</a></p>`;
-                $( '.modal' ).innerHTML = html;
-                $( '.modal' ).style.display = "block";
-                $( '.black-bg' ).style.display = "block";
-            });
             async function getMaxFeeRate() {
                 var fees = await getData( "https://mempool.space/signet/api/v1/fees/recommended" );
                 fees = JSON.parse( fees );
