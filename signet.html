@@ -370,7 +370,7 @@
 
                     // total_costs_sats = amount_inscriptions * ( 10k + ( ( ( file_kb * 1000 ) / 4 ) * fee_rate ) )
 
-                    var txsize = 500 + Math.floor(data.length / 4);
+                    var txsize = 500 + Math.floor(data.length / 2);
 
                     var feerate = await getMinFeeRate();
                     sessionStorage[ "determined_feerate" ] = sessionStorage[ "feerate" ];
