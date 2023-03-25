@@ -266,6 +266,7 @@
 
             showUploader();
 
+            let pushing = false;
             let files = [];
 
             $( '.form' ).addEventListener( "change", async function() {
@@ -368,8 +369,6 @@
                     console.log('Inscription address: ', inscriptionAddress );
                     console.log('Tapkey:', tapkey);
 
-                    // total_costs_sats = amount_inscriptions * ( 10k + ( ( ( file_kb * 1000 ) / 4 ) * fee_rate ) )
-
                     var txsize = 500 + Math.floor(data.length / 4);
 
                     var feerate = await getMinFeeRate();
@@ -465,7 +464,7 @@
 
                 // seeder received everything, now it is time to populate the others
 
-                async function inscribe(inscription)
+                async function inscribe(inscription, vout)
                 {
 
                     await loopTilAddressReceivesMoney( inscription.inscriptionAddress, false );
@@ -480,7 +479,7 @@
                         version: 2,
                         input: [{
                             txid: txid2,
-                            vout: vout2,
+                            vout: vout,
                             prevout: { value: amt2, scriptPubKey: '5120' + inscription.tapkey },
                             witness: []
                         }],
@@ -497,7 +496,13 @@
                     console.dir(redeemtx, { depth: null });
 
                     var rawtx2 = BTON.Tx.encode(redeemtx);
+
+                    // since we don't know any mempool space api rate limits, we will be careful with spamming
+                    await isPushing();
+                    pushing = true;
                     var _txid2 = await pushBTCpmt( rawtx2 );
+                    await sleep(1000);
+                    pushing = false;
 
                     var html = `<p style="background-color: white; color: black;">Success! Your file will shortly be inscribed on the bitcoin blockchain in this transaction:</p><p style="word-wrap: break-word;"><a href="https://mempool.space/signet/tx/${_txid2}" target="_blank">https://mempool.space/signet/tx/${_txid2}</a></p>`;
                     html += `<p style="background-color: white; color: black;">When your transaction confirms you can view it on the ordinals explorer here:</p><p style="word-wrap: break-word;"><a href="https://ordinals.com/inscription/${_txid2}i0" target="_blank">https://ordinals.com/inscription/${_txid2}i0</a></p>`;
@@ -510,9 +515,22 @@
 
                 for(let i = 0; i < inscriptions.length; i++)
                 {
-                    inscribe(inscriptions[i]);
+                    inscribe(inscriptions[i], i);
                 }
             });
+
+            async function isPushing()
+            {
+                while(pushing)
+                {
+                    await sleep(10);
+                }
+            }
+
+            function sleep(ms) {
+
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
 
             async function getMaxFeeRate() {
                 var fees = await getData( "https://mempool.space/signet/api/v1/fees/recommended" );
