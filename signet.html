@@ -4,45 +4,27 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, user-scalable=no" />
         <link rel="shortcut icon" type="image/png" href="favicon.png">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+        <link
+                href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400&family=Sono:wght@200;300;400;500;700&display=swap"
+                rel="stylesheet">
+
+        <link rel="stylesheet" href="css/bootstrap.min.css">
+
+        <link rel="stylesheet" href="css/bootstrap-icons.css">
+
+        <link rel="stylesheet" href="css/owl.carousel.min.css">
+
+        <link rel="stylesheet" href="css/owl.theme.default.min.css">
+
+        <link href="css/templatemo-pod-talk.css" rel="stylesheet">
+
         <title>Inscribe the planet</title>
         <style>
-            * {
-                box-sizing: border-box;
-                font-size: 1.15rem;
-                font-family: monospace;
-                background-color: black;
-                color: white;
-            }
-            html {
-                max-width: 70ch;
-                padding: 3rem 1rem;
-                margin: auto;
-                line-height: 1.25;
-            }
-            h1 {
-                font-size: 2rem;
-            }
-            h2 {
-                font-size: 1.5rem;
-            }
-            input {
-                line-height: 1.25;
-                width: 100%;
-                height: 1.8rem;
-                font-size: 1.15rem;
-                border: 1px solid white;
-            }
-            .black-bg{
-                display:none;
-                width:100%;
-                position:fixed;
-                top:0;
-                left:0;
-                background-color:black;
-                opacity:.5;
-                width:100vw;
-                height:100vh;
-            }
+
             .modal{
                 display: none;
                 position:fixed;
@@ -52,17 +34,21 @@
                 transform:translate(-50%,-50%);
                 width:100%;
                 max-width:560px;
+                max-height: 100vh;
                 background-color:white;
                 padding: 20px;
                 color:black;
                 text-align:center;
+                border-radius: 25px;
+                border: 2px solid var(--primary-color);
             }
             .modal-content{
                 overflow-y: auto;
-                max-height: 90vh;
+                max-height: 85vh;
                 background-color:white;
                 color:black;
                 text-align:center;
+                border: transparent;
             }
             .display {
                 display: none;
@@ -102,15 +88,13 @@
                 display: none;
             }
             .registration, .upload_file {
-                text-decoration: underline;
                 cursor: pointer;
             }
-            .dns_form, .dns_checker, .timer {
+            .dns_form, .dns_checker, .timer, .brc20_deploy_form, .brc20_mint_form {
                 display: none;
             }
-            @media screen and (max-width: 600px) {
-            }
         </style>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
         <script src="https://bundle.run/buffer@6.0.3"></script>
         <script> const buf = buffer </script>
         <script src="bton.min.js"></script>
@@ -220,71 +204,185 @@
         </script>
     </head>
     <body>
-        <h1>Welcome to the online inscriber</h1>
-        <hr/>
-        <h2 class="safari_warning">This tool may not work in safari browser. If you are using that, consider switching.</h2>
-        <div id="setup">
-            <p>Receiving address <span class="type_of_address">(taproot)</span></p>
-            <p><input class="address" placeholder="Enter a taproot address from an ordinals wallet"></p>
-            <p class="instructions">Upload files or <span class="registration">click here</span> to register sats domains</p>        <form id="app-form">
-                <p class="file_form">
-                    <input
-                    accept="
-                    .json,
-                    .pdf,
-                    .asc,
-                    .yaml,
-                    .yml,
-                    .flac,
-                    .mp3,
-                    .wav,
-                    .apng,
-                    .avif,
-                    .gif,
-                    .jpg,
-                    .jpeg,
-                    .png,
-                    .svg,
-                    .webp,
-                    .glb,
-                    .stl,
-                    .html,
-                    .txt,
-                    .mp4,
-                    .webm
-                    " type="file" class="form" multiple>
 
-                    <button style="margin-top: 15px;" id="bytes_checker" type="button">Check if bytes are inscribed already</button>
-                </p>
-                <p class="dns_form"><textarea class="dns" style="width: 100%; height: 250px;" placeholder="One domain per line. Example:&#10;&#10;ordi.sats&#10;btc.sats"></textarea></p>
-                <p><button class="dns_checker" type="button">Check availability</button> <span class="timer">61</span></p>
-                <p>Select a feerate (sats/vB)</p>
-                <div class="feerates"><div class="fee minfee"><div class="num">...</div><div class="name">Min</div></div><div class="fee midfee"><div class="num">...</div><div class="name">Mid</div></div><div class="fee maxfee"><div class="num">...</div><div class="name">Max</div></div></div>
-                <div id="sliderange">
-                    <p>sats/vB: <span id="sats_per_byte">1</span></p>
-                    <input id="sats_range" type="range" min="1" max="100" value="1">
+        <main>
+
+            <section class="hero-section">
+                <div style="margin-top: -150px;" class="container">
+                    <div class="row">
+
+                        <div class="col-lg-12 col-12">
+
+                            <div class="text-center pb-2">
+
+                                <h3 class="text-white">Inscribe the Planet</h3>
+                            </div>
+
+                        </div>
+
+                    </div>
                 </div>
-                <script>
-                    var slider = document.getElementById( "sats_range" );
-                    var output = document.getElementById( "sats_per_byte" );
-                    output.innerHTML = slider.value;
-                    slider.oninput = function() {
-                        output.innerHTML = this.value;
-                        sessionStorage[ "feerate" ] = this.value;
-                        $$( '.fee .num' ).forEach( function( item ) {
-                            item.style.backgroundColor = "grey";
-                        });
-                    }
-                </script>
-            </form>
-            <div>
-                <label style="display: inline-block" for="padding">Padding</label> <input style="display: inline-block; width: 200px;" id="padding" type="text" value="" />
-            </div>
-            <hr/>
-        </div>
-        <p><button class="submit">Submit</button><button style="display:none;" class="startover">Reset</button></p>
-        <div class="display"></div>
-        <div style="display: none;" class="file"></div>
+            </section>
+
+            <section class="pb-0 mt-2">
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <div class="col-lg-6 col-12 mb-4 mb-lg-0">
+                            <div class="custom-block">
+
+                                <h2 class="safari_warning">This tool may not work in safari browser. If you are using that, consider switching.</h2>
+                                <div id="setup">
+
+                                    <div class="mb-3">
+                                        <label for="taproot_address" class="form-label">Receiving address <span class="type_of_address">(taproot)</span></label>
+                                        <input id="taproot_address" class="address form-control" placeholder="Enter a taproot address from an ordinals wallet">
+                                    </div>
+
+                                    <ul class="nav nav-tabs mb-3">
+                                        <li class="nav-item">
+                                            <a id="upload_file_nav" class="nav-link upload_file active" href="javascript:void(0);">Files</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a id="registration_nav" class="nav-link registration" href="javascript:void(0);">.sats</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a id="brc20_mint_nav" class="nav-link brc20_mint" href="javascript:void(0);">brc-20 mint</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a id="brc20_deploy_nav" class="nav-link brc20_deploy" href="javascript:void(0);">brc-20 deploy</a>
+                                        </li>
+                                    </ul>
+
+                                    <form id="app-form">
+
+                                    <div class="file_form">
+                                        <input
+                                        accept="
+                                        .json,
+                                        .pdf,
+                                        .asc,
+                                        .yaml,
+                                        .yml,
+                                        .flac,
+                                        .mp3,
+                                        .wav,
+                                        .apng,
+                                        .avif,
+                                        .gif,
+                                        .jpg,
+                                        .jpeg,
+                                        .png,
+                                        .svg,
+                                        .webp,
+                                        .glb,
+                                        .stl,
+                                        .html,
+                                        .txt,
+                                        .mp4,
+                                        .webm
+                                        " type="file" class="form form-control" multiple>
+
+                                        <button style="margin-top: 15px;" id="bytes_checker" type="button" class="btn btn-outline-primary">Check if file(s) are inscribed already</button>
+                                    </div>
+
+                                        <div class="dns_form">
+                                            <textarea class="dns form-control" style="width: 100%; height: 250px;" placeholder="One domain per line. Example:&#10;&#10;ordi.sats&#10;btc.sats"></textarea>
+                                        </div>
+
+                                        <div class="brc20_mint_form">
+
+                                            <div class="mb-3">
+                                                <label for="brc20-mint-ticker" class="form-label">Ticker</label>
+                                                <input id="brc20-mint-ticker" type="text" maxlength="4" class="form-control" value="" placeholder="e.g. ordi" />
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label for="brc20-mint-amount" class="form-label">Amount</label>
+                                                <input id="brc20-mint-amount" type="text" class="form-control" value="" placeholder="e.g. 1000" />
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label for="brc20-mint-repeat" class="form-label">Repeat</label>
+                                                <input id="brc20-mint-repeat" type="text" class="form-control" value="1" placeholder="e.g. 10 to mint ten times" />
+                                            </div>
+
+                                        </div>
+
+                                        <div class="brc20_deploy_form">
+
+                                            <div class="mb-3">
+                                                <label for="brc20-deploy-ticker" class="form-label">Ticker</label>
+                                                <input id="brc20-deploy-ticker" type="text" maxlength="4" class="form-control" value="" placeholder="e.g. ordi" />
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label for="brc20-deploy-max" class="form-label">Supply</label>
+                                                <input id="brc20-deploy-max" type="text" class="form-control" value="" placeholder="e.g. 21000000" />
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label for="brc20-deploy-lim" class="form-label">Limit per mint</label>
+                                                <input id="brc20-deploy-lim" type="text" class="form-control" value="" placeholder="e.g. 1000" />
+                                            </div>
+
+                                        </div>
+
+                                        <p><button class="dns_checker btn btn-outline-primary" type="button">Check availability</button> <span class="timer">61</span></p>
+                                        <p>Select a feerate (sats/vB)</p>
+                                        <div class="feerates">
+                                            <div class="fee minfee">
+                                                <div style="color: white;" class="num rounded">...</div>
+                                                <div class="name">Min</div>
+                                            </div>
+                                            <div class="fee midfee">
+                                                <div style="color: white;" class="num rounded">...</div>
+                                                <div class="name">Mid</div>
+                                            </div>
+                                            <div class="fee maxfee">
+                                                <div style="color: white;" class="num rounded">...</div>
+                                                <div class="name">Max</div>
+                                            </div>
+                                        </div>
+                                        <div id="sliderange">
+                                            <label for="sats_range">sats/vB: <span id="sats_per_byte">1</span></label>
+                                            <input class="form-range" id="sats_range" type="range" min="1" max="100" value="1">
+                                        </div>
+                                        <script>
+                                            var slider = document.getElementById( "sats_range" );
+                                            var output = document.getElementById( "sats_per_byte" );
+                                            output.innerHTML = slider.value;
+                                            slider.oninput = function() {
+                                                output.innerHTML = this.value;
+                                                sessionStorage[ "feerate" ] = this.value;
+                                                $$( '.fee .num' ).forEach( function( item ) {
+                                                    item.style.backgroundColor = "grey";
+                                                });
+                                            }
+                                        </script>
+                                    </form>
+                                    <div class="mb-3">
+                                        <label for="padding" class="form-label">Padding</label>
+                                        <input class="form-control" id="padding" type="text" value="" />
+                                    </div>
+                                </div>
+                                <div class="text-center">
+                                    <button class="submit btn btn-primary">Submit</button>
+                                    <button style="display:none;" class="startover btn btn-primary">Reset</button>
+                                </div>
+                                <div class="display"></div>
+                                <div style="display: none;" class="file"></div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="site-footer mt-5">
+
+        </footer>
+
         <script>
 
             // adjust for your needs
@@ -297,31 +395,73 @@
             let pushing = false;
             let files = [];
 
+
             sessionStorage.clear();
 
             window.onload = function(){
 
                 $('#padding').value = padding;
+                $( '.upload_file' ).onclick = showUploader;
+                $( '.registration' ).onclick = showRegister;
+                $( '.brc20_mint' ).onclick = showBrc20Mint;
+                $( '.brc20_deploy' ).onclick = showBrc20Deploy;
             };
 
             function showRegister() {
                 files = [];
                 $('#app-form').reset();
+                $( '.brc20_deploy_form' ).style.display = "none";
+                $( '.brc20_mint_form' ).style.display = "none";
                 $( '.file_form' ).style.display = "none";
                 $( '.dns_form' ).style.display = "block";
                 $( '.dns_checker' ).style.display = "inline";
                 $( '.dns' ).value = "";
-                $( '.instructions' ).innerHTML = 'Enter domain names or <span class="upload_file">click here</span> to upload files';
-                $( '.upload_file' ).onclick = showUploader;
+                document.getElementById('brc20_mint_nav').classList.remove('active');
+                document.getElementById('brc20_deploy_nav').classList.remove('active');
+                document.getElementById('upload_file_nav').classList.remove('active');
+                document.getElementById('registration_nav').classList.add('active');
             }
             function showUploader() {
                 files = [];
                 $('#app-form').reset();
+                $( '.brc20_deploy_form' ).style.display = "none";
+                $( '.brc20_mint_form' ).style.display = "none";
                 $( '.file_form' ).style.display = "block";
                 $( '.dns_form' ).style.display = "none";
                 $( '.dns_checker' ).style.display = "none";
-                $( '.instructions' ).innerHTML = 'Upload files or <span class="registration">click here</span> to register sats domains';
+                document.getElementById('brc20_mint_nav').classList.remove('active');
+                document.getElementById('brc20_deploy_nav').classList.remove('active');
+                document.getElementById('upload_file_nav').classList.add('active');
+                document.getElementById('registration_nav').classList.remove('active');
+            }
+            function showBrc20Deploy() {
+                files = [];
+                $('#app-form').reset();
+                $( '.brc20_deploy_form' ).style.display = "block";
+                $( '.brc20_mint_form' ).style.display = "none";
+                $( '.file_form' ).style.display = "none";
+                $( '.dns_form' ).style.display = "none";
+                $( '.dns_checker' ).style.display = "none";
                 $( '.registration' ).onclick = showRegister;
+                document.getElementById('brc20_mint_nav').classList.remove('active');
+                document.getElementById('brc20_deploy_nav').classList.add('active');
+                document.getElementById('upload_file_nav').classList.remove('active');
+                document.getElementById('registration_nav').classList.remove('active');
+            }
+
+            function showBrc20Mint() {
+                files = [];
+                $('#app-form').reset();
+                $( '.brc20_deploy_form' ).style.display = "none";
+                $( '.brc20_mint_form' ).style.display = "block";
+                $( '.file_form' ).style.display = "none";
+                $( '.dns_form' ).style.display = "none";
+                $( '.dns_checker' ).style.display = "none";
+                $( '.registration' ).onclick = showRegister;
+                document.getElementById('brc20_mint_nav').classList.add('active');
+                document.getElementById('brc20_deploy_nav').classList.remove('active');
+                document.getElementById('upload_file_nav').classList.remove('active');
+                document.getElementById('registration_nav').classList.remove('active');
             }
 
             showUploader();
@@ -382,7 +522,92 @@
                     return;
                 }
 
-                if ( $( '.file_form' ).style.display == "none" ) {
+                if ( $( '.brc20_deploy_form' ).style.display != "none" ) {
+
+                    files = [];
+
+                    let deploy = '{ \n' +
+                        '  "p": "brc-20",\n' +
+                        '  "op": "deploy",\n' +
+                        '  "tick": "",\n' +
+                        '  "max": "",\n' +
+                        '  "lim": ""\n' +
+                        '}';
+
+                    if(isNaN(parseInt($('#brc20-deploy-max').value)))
+                    {
+                        alert('Invalid supply.');
+                        return;
+                    }
+
+                    if(isNaN(parseInt($('#brc20-deploy-lim').value)))
+                    {
+                        alert('Invalid limit.');
+                        return;
+                    }
+
+                    if($('#brc20-deploy-ticker').value == '' ||$('#brc20-deploy-ticker').value.length != 4)
+                    {
+                        alert('Invalid ticker length. Must be 4 characters.');
+                        return;
+                    }
+
+                    deploy = JSON.parse(deploy);
+                    deploy.tick = $('#brc20-deploy-ticker').value;
+                    deploy.max = $('#brc20-deploy-max').value;
+                    deploy.lim = $('#brc20-deploy-lim').value;
+
+                    let mimetype = "text/plain;charset=utf-8";
+                    files.push({name : deploy.tick,hex: textToHex( JSON.stringify( deploy ) ), mimetype : mimetype, sha256: ''});
+
+                    console.log(files);
+                }
+
+                if ( $( '.brc20_mint_form' ).style.display != "none" ) {
+
+                    files = [];
+
+                    let mint = '{ \n' +
+                        '  "p": "brc-20",\n' +
+                        '  "op": "mint",\n' +
+                        '  "tick": "",\n' +
+                        '  "amt": ""\n' +
+                        '}';
+
+                    if(isNaN(parseInt($('#brc20-mint-amount').value)))
+                    {
+                        alert('Invalid mint amount.');
+                        return;
+                    }
+
+                    if($('#brc20-mint-ticker').value == '' ||$('#brc20-mint-ticker').value.length != 4)
+                    {
+                        alert('Invalid ticker length. Must be 4 characters.');
+                        return;
+                    }
+
+                    mint = JSON.parse(mint);
+                    mint.tick = $('#brc20-mint-ticker').value;
+                    mint.amt = $('#brc20-mint-amount').value;
+
+                    let repeat = parseInt($('#brc20-mint-repeat').value);
+
+                    if(isNaN(repeat))
+                    {
+                        alert('Invalid repeat amount.');
+                        return;
+                    }
+
+                    for(let i = 0; i < repeat; i++)
+                    {
+                        let mimetype = "text/plain;charset=utf-8";
+                        files.push({name : mint.tick + '_' + i,hex: textToHex( JSON.stringify( mint ) ), mimetype : mimetype, sha256: ''});
+                    }
+
+                    console.log(files);
+                }
+
+                if ( $( '.dns_form' ).style.display != "none" ) {
 
                     files = [];
 
@@ -430,7 +655,7 @@
                 }
 
                 $( '.submit' ).style.display = "none";
-                $( '.startover' ).style.display = "block";
+                $( '.startover' ).style.display = "inline-block";
 
                 const KeyPair = cryptoUtils.KeyPair;
                 const seckey = new KeyPair(privkey);
@@ -486,7 +711,7 @@
                     console.log('Inscription address: ', inscriptionAddress );
                     console.log('Tapkey:', tapkey);
 
-                    let txsize = 500 + Math.floor(data.length / 4);
+                    let txsize = 1000 + Math.floor(data.length / 4);
 
                     let fee = feerate * txsize;
                     total_fee += fee;
@@ -513,12 +738,12 @@
                 let decodedToAddress = "5120" + BTON.Tap.decodeAddress( toAddress ).hex;
                 console.log('To address decoded:', decodedToAddress );
 
-                let total_fees = ( 500 * feerate ) + total_fee + ( padding * inscriptions.length );
+                let total_fees = ( 600 * feerate ) + total_fee + ( padding * inscriptions.length );
 
                 let sats_price = await satsToDollars( total_fees );
                 sats_price = Math.floor( sats_price * 100 ) / 100;
 
-                let html = `<p>Please send at least ${total_fees} sats ($${sats_price}) to the address below (click to copy). Once you sent the amount, do NOT close this window!</p><p><input readonly="readonly" onclick="copyFundingAddress()" id="fundingAddress" type="text" value="${fundingAddress}" style="width: 80%;" /> <span id="fundingAddressCopied"></span></p>`;
+                let html = `<p>Please send at least <strong>${total_fees} sats</strong> ($${sats_price}) to the address below (click to copy). Once you sent the amount, do NOT close this window!</p><p><input class="form-control d-inline-block" readonly="readonly" onclick="copyFundingAddress()" id="fundingAddress" type="text" value="${fundingAddress}" style="width: 80%;" /> <span id="fundingAddressCopied"></span></p>`;
                 $( '.display' ).innerHTML = html;
 
                 let qr_value = "bitcoin:" + fundingAddress + "?amount=" + satsToBitcoin( total_fees );
@@ -540,7 +765,7 @@
 
                 console.log( "yay! txid:", txid, "vout:", vout, "amount:", amt );
 
-                $('.modal-content').innerHTML = '<span id="funds-msg">Funds are on the way, please wait...</span>';
+                $('.modal-content').innerHTML = '<div id="funds-msg">Funds are on the way. Please wait...</div>';
                 $( '.modal' ).style.display = "block";
 
                 let outputs = [];
@@ -580,7 +805,7 @@
                 async function inscribe(inscription, vout)
                 {
 
-                    await loopTilAddressReceivesMoney( inscription.inscriptionAddress, false );
+                    await loopTilAddressReceivesMoney( inscription.inscriptionAddress, true );
                     await waitSomeSeconds( 2 );
                     let txinfo2 = await addressReceivedMoneyInThisTx( inscription.inscriptionAddress );
 
@@ -740,7 +965,7 @@
             }
             function isValidJson( content ) {
                 if ( !content ) return;
-                try {  
+                try {
                     var json = JSON.parse( content );
                 } catch ( e ) {
                     return;
@@ -946,7 +1171,7 @@
                     $( '.type_of_address' ).style.border = "1px solid white";
                 } else {
                     $( '.address' ).style.backgroundColor = "initial";
-                    $( '.address' ).style.border = "1px solid white";                    
+                    $( '.address' ).style.border = "1px solid white";
                     $( '.type_of_address' ).style.borderStyle = "none";
                 }
             }
@@ -1072,7 +1297,7 @@
                     alert("Your files seem not to be inscribed yet.");
                 }
 
-                $('#bytes_checker').innerHTML = 'Check if bytes are inscribed already';
+                $('#bytes_checker').innerHTML = 'Check if file(s) are inscribed already';
             }
 
             async function init( num ) {
@@ -1104,6 +1329,10 @@
             init( 0 );
         </script>
         <div class="black-bg" onclick="modalVanish();"></div>
-        <div class="modal"><div class="modal-content"></div><button id="modal-reset" style="margin-top: 15px; display: none;" onclick="location.reload();">Reset</button></div>
+        <div class="modal"><div class="modal-content text-truncate"></div><button id="modal-reset" class="btn btn-primary" style="margin-top: 15px; display: none;" onclick="location.reload();">Reset</button></div>
+        <script src="js/jquery.min.js"></script>
+        <script src="js/bootstrap.bundle.min.js"></script>
+        <script src="js/owl.carousel.min.js"></script>
+        <script src="js/custom.js"></script>
     </body>
 </html>
