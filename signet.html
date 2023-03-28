@@ -405,8 +405,7 @@
 
                         let mimetype = "text/plain;charset=utf-8";
                         let domain = {"p":"sns","op":"reg","name":sats_domains_cleaned[sats_domain].trim()};
-                        let sha256 = await fileToSha256Hex(JSON.stringify( domain ));
-                        files.push({name : sats_domains_cleaned[sats_domain].trim(),hex: textToHex( JSON.stringify( domain ) ), mimetype : mimetype, sha256: sha256.replace('0x','')});
+                        files.push({name : sats_domains_cleaned[sats_domain].trim(),hex: textToHex( JSON.stringify( domain ) ), mimetype : mimetype, sha256: ''});
                         console.log(domain);
                     }
                 }
