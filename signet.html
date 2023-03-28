@@ -1222,8 +1222,7 @@
             $( '.address' ).onpaste = checkAddress;
             $( '.address' ).onkeyup = checkAddress;
 
-            async function isUsedDo
-            ( domain ) {
+            async function isUsedDomain( domain ) {
                 let data = await getData( `https://api.sats.id/names/${domain}` );
                 console.log( "data:", data );
                 data = JSON.parse( data );
