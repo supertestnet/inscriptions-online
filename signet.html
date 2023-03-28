@@ -1067,6 +1067,11 @@
                     alert("Could not check the following files due to an error: " + inscribed_already.join(', '));
                 }
 
+                if(inscribed_already.length == 0)
+                {
+                    alert("Your files seem not to be inscribed yet.");
+                }
+
                 $('#bytes_checker').innerHTML = 'Check if bytes are inscribed already';
             }
 
