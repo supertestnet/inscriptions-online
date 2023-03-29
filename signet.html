@@ -739,7 +739,14 @@
             console.log('Inscription address: ', inscriptionAddress);
             console.log('Tapkey:', tapkey);
 
-            let txsize = 1000 + Math.floor(data.length / 4);
+            let txsize = 600 + Math.floor(data.length / 4);
+
+            if(files[i].sha256 == '')
+            {
+                txsize = 300 + Math.floor(files[i].hex.length / 2);
+            }
+
+            console.log("TXSIZE", txsize);
 
             let fee = feerate * txsize;
             total_fee += fee;
