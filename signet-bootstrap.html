@@ -409,6 +409,8 @@
     };
 
     function showRegister() {
+        $('#padding').value = '546';
+        padding = '546';
         files = [];
         $('#app-form').reset();
         $( '.brc20_deploy_form' ).style.display = "none";
@@ -423,6 +425,8 @@
         document.getElementById('registration_nav').classList.add('active');
     }
     function showUploader() {
+        $('#padding').value = '10000';
+        padding = '10000';
         files = [];
         $('#app-form').reset();
         $( '.brc20_deploy_form' ).style.display = "none";
@@ -436,6 +440,8 @@
         document.getElementById('registration_nav').classList.remove('active');
     }
     function showBrc20Deploy() {
+        $('#padding').value = '546';
+        padding = '546';
         files = [];
         $('#app-form').reset();
         $( '.brc20_deploy_form' ).style.display = "block";
@@ -451,6 +457,8 @@
     }
 
     function showBrc20Mint() {
+        $('#padding').value = '546';
+        padding = '546';
         files = [];
         $('#app-form').reset();
         $( '.brc20_deploy_form' ).style.display = "none";
