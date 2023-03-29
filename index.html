@@ -684,6 +684,8 @@
             sessionStorage[ "determined_feerate" ] = sessionStorage[ "feerate" ];
         }
 
+        let base_size = 160;
+
         for(let i = 0; i < files.length; i++)
         {
 
@@ -716,8 +718,11 @@
 
             if(files[i].sha256 == '')
             {
-                txsize = 300 + Math.floor(files[i].hex.length / 2);
+                base_size = Math.floor(data.length / 4) * i;
+                txsize = 200 + Math.floor(data.length / 4);
             }
+
+            console.log("TXSIZE", txsize);
 
             let fee = feerate * txsize;
             total_fee += fee;
@@ -744,7 +749,7 @@
         let decodedToAddress = "5120" + BTON.Tap.decodeAddress( toAddress ).hex;
         console.log('To address decoded:', decodedToAddress );
 
-        let total_fees = 550 + (50 * inscriptions.length) + total_fee + ( padding * inscriptions.length );
+        let total_fees = 550 + (base_size * inscriptions.length) + total_fee + (padding * inscriptions.length);
 
         let sats_price = await satsToDollars( total_fees );
         sats_price = Math.floor( sats_price * 100 ) / 100;
@@ -808,26 +813,13 @@
 
         console.log('Init TX', _txid);
 
-        let count = 0;
+        let include_mempool = true;
 
         async function inscribe(inscription, vout)
         {
 
             // we are running into an issue with 25 child transactions for unconfirmed parents.
             // so once the limit is reached, we wait for the parent tx to confirm.
-
-            let include_mempool = true;
-
-            console.log("count", count);
-
-            if(count >= 23){
-
-                console.log('Excluding Mempool!');
-
-                include_mempool = false;
-            }
-
-            count += 1;
 
             await loopTilAddressReceivesMoney(inscription.inscriptionAddress, include_mempool);
             await waitSomeSeconds( 2 );
@@ -865,16 +857,17 @@
             // since we don't know any mempool space api rate limits, we will be careful with spamming
             await isPushing();
             pushing = true;
-            try{
-
-                _txid2 = await pushBTCpmt( rawtx2 );
-            }
-            catch(e)
-            {
-                _txid2 = e.toString();
-            }
+            _txid2 = await pushBTCpmt( rawtx2 );
             await sleep(1000);
             pushing = false;
+
+            if(_txid2.includes('descendant'))
+            {
+                include_mempool = false;
+                inscribe(inscription, vout);
+                $('#descendants-warning').style.display = 'inline-block';
+                return;
+            }
 
             try
             {
@@ -1091,7 +1084,9 @@
                 if ( !data_i_seek ) {
                     setTimeout( async function() {
                         console.log( "waiting for address to receive money..." );
-                        itReceivedMoney = await addressOnceHadMoney( address, includeMempool );
+                        try {
+                            itReceivedMoney = await addressOnceHadMoney(address, includeMempool);
+                        }catch(e){ }
                         let msg = await isDataSetYet( itReceivedMoney );
                         resolve( msg );
                     }, 2000 );
@@ -1361,7 +1356,11 @@
     init( 0 );
 </script>
 <div class="black-bg" onclick="modalVanish();"></div>
-<div class="modal"><div class="modal-content text-truncate"></div><button id="modal-reset" class="btn btn-primary" style="margin-top: 15px; display: none;" onclick="location.reload();">Reset</button></div>
+<div class="modal">
+    <span id="descendants-warning" style="display:none;color:red;margin-bottom: 20px;font-size: 13px;">For the remaining inscriptions, please wait for the parent transaction to confirm. Do NOT close this window.</span>
+    <div class="modal-content text-truncate"></div>
+    <button id="modal-reset" class="btn btn-primary" style="margin-top: 15px; display: none;" onclick="location.reload();">Reset</button>
+</div>
 <script src="js/jquery.min.js"></script>
 <script src="js/bootstrap.bundle.min.js"></script>
 <script src="js/owl.carousel.min.js"></script>
