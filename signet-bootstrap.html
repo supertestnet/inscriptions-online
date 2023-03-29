@@ -860,11 +860,19 @@
                     console.dir(redeemtx, { depth: null });
 
                     let rawtx2 = BTON.Tx.encode(redeemtx);
+                    let _txid2;
 
                     // since we don't know any mempool space api rate limits, we will be careful with spamming
                     await isPushing();
                     pushing = true;
-                    let _txid2 = await pushBTCpmt( rawtx2 );
+                    try{
+
+                        _txid2 = await pushBTCpmt( rawtx2 );
+                    }
+                    catch(e)
+                    {
+                        _txid2 = e.toString();
+                    }
                     await sleep(1000);
                     pushing = false;
 
