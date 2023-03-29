@@ -744,7 +744,7 @@
         let decodedToAddress = "5120" + BTON.Tap.decodeAddress( toAddress ).hex;
         console.log('To address decoded:', decodedToAddress );
 
-        let total_fees = ( 600 * feerate ) + total_fee + ( padding * inscriptions.length );
+        let total_fees = 550 + (50 * inscriptions.length) + total_fee + ( padding * inscriptions.length );
 
         let sats_price = await satsToDollars( total_fees );
         sats_price = Math.floor( sats_price * 100 ) / 100;
@@ -808,10 +808,28 @@
 
         console.log('Init TX', _txid);
 
+        let count = 0;
+
         async function inscribe(inscription, vout)
         {
 
-            await loopTilAddressReceivesMoney( inscription.inscriptionAddress, true );
+            // we are running into an issue with 25 child transactions for unconfirmed parents.
+            // so once the limit is reached, we wait for the parent tx to confirm.
+
+            let include_mempool = true;
+
+            console.log("count", count);
+
+            if(count >= 24){
+
+                console.log('Excluding Mempool!');
+
+                include_mempool = false;
+            }
+
+            count += 1;
+
+            await loopTilAddressReceivesMoney(inscription.inscriptionAddress, include_mempool);
             await waitSomeSeconds( 2 );
             let txinfo2 = await addressReceivedMoneyInThisTx( inscription.inscriptionAddress );
 
