@@ -1,165 +1,148 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, user-scalable=no" />
-        <link rel="shortcut icon" type="image/png" href="favicon.png">
-        <title>Inscribe the planet</title>
-        <style>
-            * {
-                box-sizing: border-box;
-                font-size: 1.15rem;
-                font-family: monospace;
-                background-color: black;
-                color: white;
-            }
-            html {
-                max-width: 70ch;
-                padding: 3rem 1rem;
-                margin: auto;
-                line-height: 1.25;
-            }
-            h1 {
-                font-size: 2rem;
-            }
-            h2 {
-                font-size: 1.5rem;
-            }
-            input {
-                line-height: 1.25;
-                width: 100%;
-                height: 1.8rem;
-                font-size: 1.15rem;
-                border: 1px solid white;
-            }
-            .black-bg{
-                display:none;
-                width:100%;
-                position:fixed;
-                top:0;
-                left:0;
-                background-color:black;
-                opacity:.5;
-                width:100vw;
-                height:100vh;
-            }
-            .modal{
-                display:none;
-                position:fixed;
-                box-sizing:border-box;
-                top:50%;
-                left:50%;
-                transform:translate(-50%,-50%);
-                width:100%;
-                max-width:560px;
-                background-color:white;
-                border-radius:10px;
-                padding:20px;
-                color:black;
-                text-align:center;
-            }
-            .display {
-                display: none;
-                border: 1px solid white;
-                padding: 1rem;
-                border-radius: 1rem;
-                word-wrap: break-word;
-                text-align: center;
-                position: relative;
-            }
-            .display p {
-                text-align: left;
-            }
-            .checking_mempool, .checking_mempool span {
-                color: lightgreen;
-            }
-            .feerates {
-                display: flex;
-                justify-content: space-around;
-            }
-            .fee {
-                width: 100%;
-                max-width: 6rem;
-                margin: 0px 0.5rem;
-                text-align: center;
-                cursor: pointer;
-            }
-            .fee .num {
-                background-color: grey;
-                border: 1px solid white;
-                padding: .3rem;
-            }
-            .minfee .num {
-                background-color: green;
-            }
-            .safari_warning {
-                display: none;
-            }
-            .registration, .upload_file {
-                text-decoration: underline;
-                cursor: pointer;
-            }
-            .dns_form, .dns_checker, .timer {
-                display: none;
-            }
-            @media screen and (max-width: 600px) {
-            }
-        </style>
-        <script src="https://unpkg.com/@cmdcode/bton@1.0.3"></script>
-        <script> const BTON = window.bton </script>
-        <script src="https://unpkg.com/@cmdcode/crypto-utils@1.5.11"></script>
-        <script src="https://bundle.run/bech32@2.0.0"></script>
-        <script src="https://supertestnet.github.io/bitcoin-chess/js/qrcode.js"></script>
-        <script>
-            var $ = document.querySelector.bind( document );
-            var $$ = document.querySelectorAll.bind( document );
-            var url_params = new URLSearchParams( window.location.search );
-            var url_keys = url_params.keys();
-            var $_GET = {}
-            for ( var key of url_keys ) $_GET[ key ] = url_params.get( key );
-        </script>
-        <script>
-            function encodeBase64( file ) {
-                return new Promise( function( resolve, reject ) {
-                    //the next three lines handle the case where an image is passed in from an external site
-                    if ( "files" in file ) {
-                        file = file.files[ 0 ];
-                    }
-                    var mimetype = file.type;
-                    if ( mimetype.includes( "text/plain" ) ) {
-                        mimetype += ";charset=utf-8";
-                    }
-                    sessionStorage[ "mimetype" ] = mimetype;
-                    var imgReader = new FileReader();
-                    imgReader.onloadend = function() {
-                        resolve( imgReader.result.toString() );
-                    }
-                    imgReader.readAsDataURL( file );
-                });
-            }
-            function base64ToHex(str) {
-              const raw = atob(str);
-              let result = '';
-              for (let i = 0; i < raw.length; i++) {
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no" />
+    <link rel="shortcut icon" type="image/png" href="favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+            href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400&family=Sono:wght@200;300;400;500;700&display=swap"
+            rel="stylesheet">
+
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+
+    <link rel="stylesheet" href="css/bootstrap-icons.css">
+
+    <link rel="stylesheet" href="css/owl.carousel.min.css">
+
+    <link rel="stylesheet" href="css/owl.theme.default.min.css">
+
+    <link href="css/templatemo-pod-talk.css" rel="stylesheet">
+
+    <title>Inscribe the planet</title>
+    <style>
+
+        .modal{
+            display: none;
+            position:fixed;
+            box-sizing:border-box;
+            top:50%;
+            left:50%;
+            transform:translate(-50%,-50%);
+            width:100%;
+            max-width:560px;
+            max-height: 100vh;
+            background-color:white;
+            padding: 20px;
+            color:black;
+            text-align:center;
+            border-radius: 25px;
+            border: 2px solid var(--primary-color);
+        }
+        .modal-content{
+            overflow-y: auto;
+            max-height: 85vh;
+            background-color:white;
+            color:black;
+            text-align:center;
+            border: transparent;
+        }
+        .display {
+            display: none;
+            border: 1px solid white;
+            padding: 1rem;
+            border-radius: 1rem;
+            word-wrap: break-word;
+            text-align: center;
+            position: relative;
+        }
+        .display p {
+            text-align: left;
+        }
+        .checking_mempool, .checking_mempool span {
+            color: lightgreen;
+        }
+        .feerates {
+            display: flex;
+            justify-content: space-around;
+        }
+        .fee {
+            width: 100%;
+            max-width: 6rem;
+            margin: 0px 0.5rem;
+            text-align: center;
+            cursor: pointer;
+        }
+        .fee .num {
+            background-color: grey;
+            border: 1px solid white;
+            padding: .3rem;
+        }
+        .minfee .num {
+            background-color: green;
+        }
+        .safari_warning {
+            display: none;
+        }
+        .registration, .upload_file {
+            cursor: pointer;
+        }
+        .dns_form, .dns_checker, .timer, .brc20_deploy_form, .brc20_mint_form {
+            display: none;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+    <script src="https://bundle.run/buffer@6.0.3"></script>
+    <script> const buf = buffer </script>
+    <script src="bton.min.js"></script>
+    <script> const BTON = window.bton </script>
+    <script src="https://unpkg.com/@cmdcode/crypto-utils@1.5.11"></script>
+    <script src="https://bundle.run/bech32@2.0.0"></script>
+    <script src="https://supertestnet.github.io/bitcoin-chess/js/qrcode.js"></script>
+    <script>
+        let $ = document.querySelector.bind( document );
+        let $$ = document.querySelectorAll.bind( document );
+        let url_params = new URLSearchParams( window.location.search );
+        let url_keys = url_params.keys();
+        let $_GET = {}
+        for ( let key of url_keys ) $_GET[ key ] = url_params.get( key );
+    </script>
+    <script>
+        function encodeBase64( file ) {
+            return new Promise( function( resolve, reject ) {
+                let imgReader = new FileReader();
+                imgReader.onloadend = function() {
+                    resolve( imgReader.result.toString() );
+                }
+                imgReader.readAsDataURL( file );
+            });
+        }
+        function base64ToHex(str) {
+            const raw = atob(str);
+            let result = '';
+            for (let i = 0; i < raw.length; i++) {
                 const hex = raw.charCodeAt(i).toString(16);
                 result += (hex.length === 2 ? hex : '0' + hex);
-              }
-              return result.toLowerCase();
             }
-            function hexToBytes( hex ) {
-                return Uint8Array.from( hex.match( /.{1,2}/g ).map( ( byte ) => parseInt( byte, 16 ) ) );
-            }
-            function bytesToHex( bytes ) {
-                return bytes.reduce( ( str, byte ) => str + byte.toString( 16 ).padStart( 2, "0" ), "" );
-            }
-            function textToHex( text ) {
-                var encoder = new TextEncoder().encode( text );
-                return [...new Uint8Array(encoder)]
-                    .map( x => x.toString( 16 ).padStart( 2, "0" ) )
-                    .join( "" );
-            }
-            function createQR( content ) {
-                var dataUriPngImage = document.createElement( "img" ),
+            return result.toLowerCase();
+        }
+        function hexToBytes( hex ) {
+            return Uint8Array.from( hex.match( /.{1,2}/g ).map( ( byte ) => parseInt( byte, 16 ) ) );
+        }
+        function bytesToHex( bytes ) {
+            return bytes.reduce( ( str, byte ) => str + byte.toString( 16 ).padStart( 2, "0" ), "" );
+        }
+        function textToHex( text ) {
+            var encoder = new TextEncoder().encode( text );
+            return [...new Uint8Array(encoder)]
+                .map( x => x.toString( 16 ).padStart( 2, "0" ) )
+                .join( "" );
+        }
+        function createQR( content ) {
+            let dataUriPngImage = document.createElement( "img" ),
                 s = QRCode.generatePNG( content, {
                     ecclevel: "M",
                     format: "html",
@@ -168,511 +151,1189 @@
                     margin: 4,
                     modulesize: 8,
                 });
-                dataUriPngImage.src = s;
-                dataUriPngImage.id = "qr_code";
-                return dataUriPngImage;
-            }
-            async function getBitcoinPriceFromCoinbase() {
-                    var data = await getData( "https://api.coinbase.com/v2/prices/BTC-USD/spot" );
-                    var json = JSON.parse( data );
-                    var price = json[ "data" ][ "amount" ];
-                    return price;
-            }
+            dataUriPngImage.src = s;
+            dataUriPngImage.id = "qr_code";
+            return dataUriPngImage;
+        }
+        async function getBitcoinPriceFromCoinbase() {
+            let data = await getData( "https://api.coinbase.com/v2/prices/BTC-USD/spot" );
+            let json = JSON.parse( data );
+            let price = json[ "data" ][ "amount" ];
+            return price;
+        }
 
-            async function getBitcoinPriceFromKraken() {
-                    var data = await getData( "https://api.kraken.com/0/public/Ticker?pair=XBTUSD" );
-                    var json = JSON.parse( data );
-                    var price = json[ "result" ][ "XXBTZUSD" ][ "a" ][ 0 ];
-                    return price;
-            }
+        async function getBitcoinPriceFromKraken() {
+            let data = await getData( "https://api.kraken.com/0/public/Ticker?pair=XBTUSD" );
+            let json = JSON.parse( data );
+            let price = json[ "result" ][ "XXBTZUSD" ][ "a" ][ 0 ];
+            return price;
+        }
 
-            async function getBitcoinPriceFromCoindesk() {
-                    var data = await getData( "https://api.coindesk.com/v1/bpi/currentprice.json" );
-                    var json = JSON.parse( data );
-                    var price = json[ "bpi" ][ "USD" ][ "rate_float" ];
-                    return price;
-            }
+        async function getBitcoinPriceFromCoindesk() {
+            let data = await getData( "https://api.coindesk.com/v1/bpi/currentprice.json" );
+            let json = JSON.parse( data );
+            let price = json[ "bpi" ][ "USD" ][ "rate_float" ];
+            return price;
+        }
 
-            async function getBitcoinPriceFromGemini() {
-                    var data = await getData( "https://api.gemini.com/v2/ticker/BTCUSD" );
-                    var json = JSON.parse( data );
-                    var price = json[ "bid" ];
-                    return price;
-            }
+        async function getBitcoinPriceFromGemini() {
+            let data = await getData( "https://api.gemini.com/v2/ticker/BTCUSD" );
+            let json = JSON.parse( data );
+            let price = json[ "bid" ];
+            return price;
+        }
 
-            async function getBitcoinPriceFromBybit() {
-                    var data = await getData( "https://api-testnet.bybit.com/derivatives/v3/public/order-book/L2?category=linear&symbol=BTCUSDT" );
-                    var json = JSON.parse( data );
-                    var price = json[ "result" ][ "b" ][ 0 ][ 0 ];
-                    return price;
-            }
+        async function getBitcoinPriceFromBybit() {
+            let data = await getData( "https://api-testnet.bybit.com/derivatives/v3/public/order-book/L2?category=linear&symbol=BTCUSDT" );
+            let json = JSON.parse( data );
+            let price = json[ "result" ][ "b" ][ 0 ][ 0 ];
+            return price;
+        }
 
-            async function getBitcoinPrice() {
-                var prices = [];
-                var cbprice = await getBitcoinPriceFromCoinbase();
-                var kprice = await getBitcoinPriceFromKraken();
-                var cdprice = await getBitcoinPriceFromCoindesk();
-                var gprice = await getBitcoinPriceFromGemini();
-                var bprice = await getBitcoinPriceFromBybit();
-                prices.push( Number( cbprice ), Number( kprice ), Number( cdprice ), Number( gprice ), Number( bprice ) );
-                prices.sort();
-                return prices[ 2 ];
-            }
-        </script>
-    </head>
-    <body>
-        <h1>Welcome to the online inscriber</h1>
-        <h2 class="safari_warning">This tool may not work in safari browser. If you are using that, consider switching.</h2>
-        <p>First enter a <span class="type_of_address">taproot</span> address from an ordinal wallet</p>
-        <p><input class="address"></p>
-        <p class="instructions">Then upload a file you want that address to own or <span class="registration">click here</span> to register a domain name</p>
-        <form>
-            <p class="file_form"><input type="file" class="form"></p>
-            <p class="dns_form"><input class="dns" placeholder="example: lol.sats"></p>
-            <p><button class="dns_checker" type="button">Check availability</button> <span class="timer">61</span></p>
-            <p>Select a feerate (measured in sats per byte)</p>
-            <div class="feerates"><div class="fee minfee"><div class="num">...</div><div class="name">Min</div></div><div class="fee midfee"><div class="num">...</div><div class="name">Mid</div></div><div class="fee maxfee"><div class="num">...</div><div class="name">Max</div></div></div>
-            <div id="sliderange">
-                <p>Sats per byte: <span id="sats_per_byte">1</span></p>
-                <input id="sats_range" type="range" min="1" max="100" value="1">
+        async function getBitcoinPrice() {
+            let prices = [];
+            let cbprice = await getBitcoinPriceFromCoinbase();
+            let kprice = await getBitcoinPriceFromKraken();
+            let cdprice = await getBitcoinPriceFromCoindesk();
+            let gprice = await getBitcoinPriceFromGemini();
+            let bprice = await getBitcoinPriceFromBybit();
+            prices.push( Number( cbprice ), Number( kprice ), Number( cdprice ), Number( gprice ), Number( bprice ) );
+            prices.sort();
+            return prices[ 2 ];
+        }
+    </script>
+</head>
+<body>
+
+<main>
+
+    <section class="hero-section">
+        <div style="margin-top: -150px;" class="container">
+            <div class="row">
+
+                <div class="col-lg-12 col-12">
+
+                    <div class="text-center pb-2">
+
+                        <h3 class="text-white">Inscribe the Planet</h3>
+                    </div>
+
+                </div>
+
             </div>
-            <script>
-                var slider = document.getElementById( "sats_range" );
-                var output = document.getElementById( "sats_per_byte" );
-                output.innerHTML = slider.value;
-                slider.oninput = function() {
-                    output.innerHTML = this.value;
-                    sessionStorage[ "feerate" ] = this.value;
-                    $$( '.fee .num' ).forEach( function( item ) {
-                        item.style.backgroundColor = "grey";
-                    });
-                }
-            </script>
-        </form>
-        <p><button class="submit">Submit</button></p>
-        <div class="display"></div>
-        <div style="display: none;" class="file"></div>
-        <script>
-            sessionStorage.clear();
-            const privkey = bytesToHex( cryptoUtils.Noble.utils.randomPrivateKey() );
-            function showRegister() {
-                $( '.file_form' ).style.display = "none";
-                $( '.dns_form' ).style.display = "block";
-                $( '.dns_checker' ).style.display = "inline";
-                $( '.dns' ).value = "";
-                $( '.instructions' ).innerHTML = `Enter a domain name you want to register or <span class="upload_file">click here</span> to upload a file instead.`;
-                $( '.upload_file' ).onclick = showUploader;
+        </div>
+    </section>
+
+    <section class="pb-0 mt-2">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-6 col-12 mb-4 mb-lg-0">
+                    <div class="custom-block">
+
+                        <h2 class="safari_warning">This tool may not work in safari browser. If you are using that, consider switching.</h2>
+                        <div id="setup">
+
+                            <div class="mb-3">
+                                <label for="taproot_address" class="form-label">Receiving address <span class="type_of_address">(taproot)</span></label>
+                                <input id="taproot_address" class="address form-control" placeholder="Enter a taproot address from an ordinals wallet">
+                            </div>
+
+                            <ul class="nav nav-tabs mb-3">
+                                <li class="nav-item">
+                                    <a id="upload_file_nav" class="nav-link upload_file active" href="javascript:void(0);">Files</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a id="registration_nav" class="nav-link registration" href="javascript:void(0);">.sats</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a id="brc20_mint_nav" class="nav-link brc20_mint" href="javascript:void(0);">brc-20 mint</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a id="brc20_deploy_nav" class="nav-link brc20_deploy" href="javascript:void(0);">brc-20 deploy</a>
+                                </li>
+                            </ul>
+
+                            <form id="app-form">
+
+                                <div class="file_form">
+                                    <input
+                                            accept="
+                                        .json,
+                                        .pdf,
+                                        .asc,
+                                        .yaml,
+                                        .yml,
+                                        .flac,
+                                        .mp3,
+                                        .wav,
+                                        .apng,
+                                        .avif,
+                                        .gif,
+                                        .jpg,
+                                        .jpeg,
+                                        .png,
+                                        .svg,
+                                        .webp,
+                                        .glb,
+                                        .stl,
+                                        .html,
+                                        .txt,
+                                        .mp4,
+                                        .webm
+                                        " type="file" class="form form-control" multiple>
+
+                                    <button style="margin-top: 15px;" id="bytes_checker" type="button" class="btn btn-outline-primary mb-3">Check if file(s) are inscribed already</button>
+                                </div>
+
+                                <div class="dns_form">
+                                    <textarea class="dns form-control" style="width: 100%; height: 250px;" placeholder="One domain per line. Example:&#10;&#10;ordi.sats&#10;btc.sats"></textarea>
+                                </div>
+
+                                <div class="brc20_mint_form">
+
+                                    <div class="mb-3">
+                                        <label for="brc20-mint-ticker" class="form-label">Ticker</label>
+                                        <input id="brc20-mint-ticker" type="text" maxlength="4" class="form-control" value="" placeholder="e.g. ordi" />
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="brc20-mint-amount" class="form-label">Amount</label>
+                                        <input id="brc20-mint-amount" type="text" class="form-control" value="" placeholder="e.g. 1000" />
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="brc20-mint-repeat" class="form-label">Repeat</label>
+                                        <input id="brc20-mint-repeat" type="text" class="form-control" value="1" placeholder="e.g. 10 to mint ten times" />
+                                    </div>
+
+                                </div>
+
+                                <div class="brc20_deploy_form">
+
+                                    <div class="mb-3">
+                                        <label for="brc20-deploy-ticker" class="form-label">Ticker</label>
+                                        <input id="brc20-deploy-ticker" type="text" maxlength="4" class="form-control" value="" placeholder="e.g. ordi" />
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="brc20-deploy-max" class="form-label">Supply</label>
+                                        <input id="brc20-deploy-max" type="text" class="form-control" value="" placeholder="e.g. 21000000" />
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="brc20-deploy-lim" class="form-label">Limit per mint</label>
+                                        <input id="brc20-deploy-lim" type="text" class="form-control" value="" placeholder="e.g. 1000" />
+                                    </div>
+
+                                </div>
+
+                                <button class="dns_checker btn btn-outline-primary mt-3 mb-3" type="button">Check availability</button> <span class="timer">61</span>
+
+                                <p>Select a feerate (sats/vB)</p>
+                                <div class="feerates">
+                                    <div class="fee minfee">
+                                        <div style="color: white;" class="num rounded">...</div>
+                                        <div class="name">Min</div>
+                                    </div>
+                                    <div class="fee midfee">
+                                        <div style="color: white;" class="num rounded">...</div>
+                                        <div class="name">Mid</div>
+                                    </div>
+                                    <div class="fee maxfee">
+                                        <div style="color: white;" class="num rounded">...</div>
+                                        <div class="name">Max</div>
+                                    </div>
+                                </div>
+                                <div id="sliderange">
+                                    <label for="sats_range">sats/vB: <span id="sats_per_byte">1</span></label>
+                                    <input class="form-range" id="sats_range" type="range" min="1" max="100" value="1">
+                                </div>
+                                <script>
+                                    var slider = document.getElementById( "sats_range" );
+                                    var output = document.getElementById( "sats_per_byte" );
+                                    output.innerHTML = slider.value;
+                                    slider.oninput = function() {
+                                        output.innerHTML = this.value;
+                                        sessionStorage[ "feerate" ] = this.value;
+                                        $$( '.fee .num' ).forEach( function( item ) {
+                                            item.style.backgroundColor = "grey";
+                                        });
+                                    }
+                                </script>
+                            </form>
+                            <div class="mb-3">
+                                <label for="padding" class="form-label">Padding</label>
+                                <input class="form-control" id="padding" type="text" value="" />
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <button class="submit btn btn-primary">Submit</button>
+                            <button style="display:none;" class="startover btn btn-primary">Reset</button>
+                        </div>
+                        <div class="display"></div>
+                        <div style="display: none;" class="file"></div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="site-footer mt-5">
+
+</footer>
+
+<script>
+
+    // adjust for your needs
+    let padding = 10000; // default padding as of ord native wallet
+    let encodedAddressPrefix = 'bc'; // mainnet: 'bc', signet/testnet: 'tb'
+    let mempoolNetwork = ''; // mainnet: '', 'signet/', 'testnet/'
+
+    // no changes from here
+    const privkey = bytesToHex( cryptoUtils.Noble.utils.randomPrivateKey() );
+    let pushing = false;
+    let files = [];
+
+
+    sessionStorage.clear();
+
+    window.onload = function(){
+
+        $('#padding').value = padding;
+        $( '.upload_file' ).onclick = showUploader;
+        $( '.registration' ).onclick = showRegister;
+        $( '.brc20_mint' ).onclick = showBrc20Mint;
+        $( '.brc20_deploy' ).onclick = showBrc20Deploy;
+    };
+
+    function showRegister() {
+        files = [];
+        $('#app-form').reset();
+        $( '.brc20_deploy_form' ).style.display = "none";
+        $( '.brc20_mint_form' ).style.display = "none";
+        $( '.file_form' ).style.display = "none";
+        $( '.dns_form' ).style.display = "block";
+        $( '.dns_checker' ).style.display = "inline";
+        $( '.dns' ).value = "";
+        document.getElementById('brc20_mint_nav').classList.remove('active');
+        document.getElementById('brc20_deploy_nav').classList.remove('active');
+        document.getElementById('upload_file_nav').classList.remove('active');
+        document.getElementById('registration_nav').classList.add('active');
+    }
+    function showUploader() {
+        files = [];
+        $('#app-form').reset();
+        $( '.brc20_deploy_form' ).style.display = "none";
+        $( '.brc20_mint_form' ).style.display = "none";
+        $( '.file_form' ).style.display = "block";
+        $( '.dns_form' ).style.display = "none";
+        $( '.dns_checker' ).style.display = "none";
+        document.getElementById('brc20_mint_nav').classList.remove('active');
+        document.getElementById('brc20_deploy_nav').classList.remove('active');
+        document.getElementById('upload_file_nav').classList.add('active');
+        document.getElementById('registration_nav').classList.remove('active');
+    }
+    function showBrc20Deploy() {
+        files = [];
+        $('#app-form').reset();
+        $( '.brc20_deploy_form' ).style.display = "block";
+        $( '.brc20_mint_form' ).style.display = "none";
+        $( '.file_form' ).style.display = "none";
+        $( '.dns_form' ).style.display = "none";
+        $( '.dns_checker' ).style.display = "none";
+        $( '.registration' ).onclick = showRegister;
+        document.getElementById('brc20_mint_nav').classList.remove('active');
+        document.getElementById('brc20_deploy_nav').classList.add('active');
+        document.getElementById('upload_file_nav').classList.remove('active');
+        document.getElementById('registration_nav').classList.remove('active');
+    }
+
+    function showBrc20Mint() {
+        files = [];
+        $('#app-form').reset();
+        $( '.brc20_deploy_form' ).style.display = "none";
+        $( '.brc20_mint_form' ).style.display = "block";
+        $( '.file_form' ).style.display = "none";
+        $( '.dns_form' ).style.display = "none";
+        $( '.dns_checker' ).style.display = "none";
+        $( '.registration' ).onclick = showRegister;
+        document.getElementById('brc20_mint_nav').classList.add('active');
+        document.getElementById('brc20_deploy_nav').classList.remove('active');
+        document.getElementById('upload_file_nav').classList.remove('active');
+        document.getElementById('registration_nav').classList.remove('active');
+    }
+
+    showUploader();
+
+    $( '.form' ).addEventListener( "change", async function() {
+
+        files = [];
+
+        let limit_reached = 0;
+
+        for(let i = 0; i < this.files.length; i++)
+        {
+
+            let b64;
+            let mimetype = this.files[i].type;
+
+            if ( mimetype.includes( "text/plain" ) ) {
+
+                mimetype += ";charset=utf-8";
             }
-            function showUploader() {
-                $( '.file_form' ).style.display = "block";
-                $( '.dns_form' ).style.display = "none";
-                $( '.dns_checker' ).style.display = "none";
-                $( '.instructions' ).innerHTML = `Then upload a file you want that address to own or <span class="registration">click here</span> to register a domain name`;
-                $( '.registration' ).onclick = showRegister;
+
+            if (this.files[i].size >= 350000) {
+
+                limit_reached += 1;
+
+            } else {
+
+                b64 = await encodeBase64( this.files[i] );
+                let base64 = b64.substring( b64.indexOf( "base64," ) + 7 );
+                let hex = base64ToHex( base64 );
+
+                //console.log( "hex:", hex );
+                //console.log( "bytes:", hexToBytes( hex ) );
+
+                let sha256 = await fileToSha256Hex(this.files[i]);
+                files.push({name: this.files[i].name, hex: hex, mimetype : mimetype, sha256: sha256.replace('0x','')});
             }
-            showUploader();
-            $( '.form' ).addEventListener( "change", async function() {
-                if ( this.files[ 0 ].size >= 120000 && this.files[ 0 ].size < 350000 ) {
-                    var conf = confirm( "You exceeded the 120 kb size limit. Click ok to override this warning or click cancel to try again." );
-                    if ( conf ) {
-                        var b64 = await encodeBase64( this );
-                    } else {
-                        this.value = null;
-                    }
-                } else if ( this.files[ 0 ].size >= 350000 ) {
-                    alert( "You exceeded this software's hard size limit of 350 kb files. Modify the code to override the limit." )
-                    this.value = null;
-                } else {
-                    var b64 = await encodeBase64( this );
-                }
-                var base64 = b64.substring( b64.indexOf( "base64," ) + 7 );
-                var hex = base64ToHex( base64 );
-                // console.log( "hex:", hex );
-                // console.log( "bytes:", hexToBytes( hex ) );
-                $( '.file' ).innerText = hex;
-            });
-            $( '.submit' ).addEventListener( "click", async function() {
-                if ( $( '.file_form' ).style.display == "none" ) {
-                    sessionStorage[ "mimetype" ] = "text/plain;charset=utf-8";
-                    var domain = {"p":"sns","op":"reg","name":$( '.dns' ).value}
-                    $( '.file' ).innerText = textToHex( JSON.stringify( domain ) );
-                }
-                const ec = new TextEncoder();
-                const hex = $( '.file' ).innerText;
-                const data = hexToBytes( hex );
-                const KeyPair = cryptoUtils.KeyPair;
-                const seckey = new KeyPair(privkey);
-                const pubkey   = seckey.pub.rawX;
-                const mimetype = ec.encode( sessionStorage[ "mimetype" ] );
-                const script   = [ pubkey, 'OP_CHECKSIG', 'OP_0', 'OP_IF', ec.encode('ord'), '01', mimetype, 'OP_0', data, 'OP_ENDIF' ];
-                const leaf       = await BTON.Tap.getLeaf(BTON.Script.encode(script));
-                const [ tapkey ] = await BTON.Tap.getPubkey(pubkey, [ leaf ]);
-                const cblock     = await BTON.Tap.getPath(pubkey, leaf);
-                console.log('Tapkey:', tapkey);
-                var fundingAddress = BTON.Tap.encodeAddress( tapkey, 'bc' );
-                console.log('Funding address: ', fundingAddress );
-                //var toAddress = prompt( "give me the address you your inscription to arrive in and consider using this one: tb1padwymyc6x2dfc3cwzvpxxcqsr3c46cjx9zxg0jmcuf44fjuwljxs7x68fm" );
-                //var toAddress = "tb1padwymyc6x2dfc3cwzvpxxcqsr3c46cjx9zxg0jmcuf44fjuwljxs7x68fm";
-                var toAddress = $( '.address' ).value;
-                console.log('Address that will receive the inscription:', toAddress );
-                var decodedToAddress = "5120" + BTON.Tap.decodeAddress( toAddress ).hex;
-                console.log('To address decoded:', decodedToAddress );
-                var txsize = 200 + ( hex.length / 2 );
-                if ( sessionStorage[ "feerate" ] ) {
-                    var feerate = Number( sessionStorage[ "feerate" ] );
-                    sessionStorage[ "determined_feerate" ] = sessionStorage[ "feerate" ];
-                } else {
-                    var feerate = await getMinFeeRate();
-                    sessionStorage[ "determined_feerate" ] = sessionStorage[ "feerate" ];
-                }
-                var fee = feerate * txsize;
-                var btc_price = sessionStorage[ "bitcoin_price" ];
-                var sats_price = await satsToDollars( fee + 1000 );
-                sats_price = Math.floor( sats_price * 100 ) / 100;
-                var html = `<p>Please send at least ${fee + 1000} sats ($${sats_price}) to this address:</p><p>${fundingAddress}</p>`;
-                $( '.display' ).innerHTML = html;
-                var qr_value = "bitcoin:" + fundingAddress + "?amount=" + satsToBitcoin( fee + 1000 );
-                console.log( "qr:", qr_value );
-                $( '.display' ).append( createQR( qr_value ) );
-                $( '.display' ).innerHTML += `<p class="checking_mempool">Checking the mempool<span class="dots">.</span></p>`;
-                $( '.display' ).innerHTML += `<p>1000 sats will go to the address</p><p>${fee} sats will go to miners as a mining fee</p>`;
-                $( '.display' ).style.display = "block";
-                await loopTilAddressReceivesMoney( fundingAddress );
-                await waitSomeSeconds( 2 );
-                var txinfo = await addressReceivedMoneyInThisTx( fundingAddress );
-                var txid = txinfo[ 0 ];
-                var vout = txinfo[ 1 ];
-                var amt = txinfo[ 2 ];
-                // if ( !txid || !vout || !amt ) {
-                //     await waitSomeSeconds( 2 );
-                //     txinfo = await addressReceivedMoneyInThisTx( fundingAddress );
-                //     txid = txinfo[ 0 ];
-                //     vout = txinfo[ 1 ];
-                //     amt = txinfo[ 2 ];
-                // }
-                // var amt = prompt( "give me the amount you sent" );
-                // amt = Number( amt );
-                // var txid = prompt( "give me the txid" );
-                // var vout = prompt( "give me the vout" );
-                // vout = Number( vout );
-                console.log( "yay! txid:", txid, "vout:", vout, "amount:", amt );
-                if ( sessionStorage[ "determined_feerate" ] ) {
-                    feerate = Number( sessionStorage[ "determined_feerate" ] );
-                } else {
-                    feerate = await getMinFeeRate();
-                }
-                var fee = feerate * txsize;
-                console.log( "feerate:", feerate, "txsize:", txsize, "fee:", fee );
-                console.log( "fee:", fee );
-                const redeemtx = {
-                  version: 2,
-                  input: [{
-                    txid: txid,
-                    vout: vout,
-                    prevout: { value: amt, scriptPubKey: '5120' + tapkey },
-                    witness: []
-                  }],
-                  output:[{
-                    value: amt - fee,
-                    scriptPubKey: decodedToAddress
-                  }],
-                  locktime: 0
-                }
-                const sec = await BTON.Tap.getSeckey(seckey.raw, [ leaf ]);
-                const sig = await BTON.Sig.taproot.sign(seckey.raw, redeemtx, 0, { extention: leaf });
-                redeemtx.input[0].witness = [ sig, script, cblock ];
-                console.dir(redeemtx, { depth: null });
-                //await BTON.Sig.taproot.verify(redeemtx, 0, {extension: leaf}, true);
-                var rawtx = BTON.Tx.encode(redeemtx);
-                console.log('Txdata:', rawtx );
-                var txid = await pushBTCpmt( rawtx );
-                var html = `<p style="background-color: white; color: black;">Success! Your file will shortly be inscribed on the bitcoin blockchain in this transaction:</p><p style="word-wrap: break-word;"><a href="https://mempool.space/tx/${txid}" target="_blank">https://mempool.space/tx/${txid}</a></p>`;
-                html += `<p style="background-color: white; color: black;">When your transaction confirms you can view it on the ordinals explorer here:</p><p style="word-wrap: break-word;"><a href="https://ordinals.com/inscription/${txid}i0" target="_blank">https://ordinals.com/inscription/${txid}i0</a></p>`;
-                $( '.modal' ).innerHTML = html;
-                $( '.modal' ).style.display = "block";
-                $( '.black-bg' ).style.display = "block";
-            });
-            async function getMaxFeeRate() {
-                var fees = await getData( "https://mempool.space/api/v1/fees/recommended" );
-                fees = JSON.parse( fees );
-                // if ( !( "minimumFee" in fees ) ) return "error -- site down";
-                // var minfee = fees[ "minimumFee" ];
-                if ( !( "fastestFee" in fees ) ) return "error -- site down";
-                var maxfee = fees[ "fastestFee" ];
-                return maxfee;
-            }
-            async function getMinFeeRate() {
-                var fees = await getData( "https://mempool.space/api/v1/fees/recommended" );
-                fees = JSON.parse( fees );
-                if ( !( "minimumFee" in fees ) ) return "error -- site down";
-                var minfee = fees[ "minimumFee" ];
-                // if ( !( "fastestFee" in fees ) ) return "error -- site down";
-                // var maxfee = fees[ "fastestFee" ];
-                return minfee;
-            }
-            function isValidTaprootAddress( address ) {
-                try {
-                    BTON.Tap.decodeAddress( address ).hex;
-                    return true;
-                } catch( e ) {}
+        }
+
+        if(limit_reached != 0)
+        {
+            alert( limit_reached + " of your desired inscriptions exceed(s) the maximum of 350kb." )
+        }
+
+        console.log(files);
+    });
+
+    $( '.startover' ).addEventListener( "click", async function() {
+
+        location.reload();
+    });
+
+    $( '.submit' ).addEventListener( "click", async function() {
+
+        if(!isValidAddress())
+        {
+            alert('Invalid taproot address.');
+            return;
+        }
+
+        if ( $( '.brc20_deploy_form' ).style.display != "none" ) {
+
+            files = [];
+
+            let deploy = '{ \n' +
+                '  "p": "brc-20",\n' +
+                '  "op": "deploy",\n' +
+                '  "tick": "",\n' +
+                '  "max": "",\n' +
+                '  "lim": ""\n' +
+                '}';
+
+            if(isNaN(parseInt($('#brc20-deploy-max').value)))
+            {
+                alert('Invalid supply.');
                 return;
             }
-            function isValidJson( content ) {
-                if ( !content ) return;
-                try {
-                    var json = JSON.parse( content );
-                } catch ( e ) {
-                    return;
-                }
-                return true;
-            }
-            async function getAllFeeRates() {
-                var fees = await getData( "https://mempool.space/api/v1/fees/recommended" );
-                fees = JSON.parse( fees );
-                return fees;
-            }
-            function getData( url ) {
-                return new Promise( async function( resolve, reject ) {
-                    function inner_get( url ) {
-                        var xhttp = new XMLHttpRequest();
-                        xhttp.open( "GET", url, true );
-                        xhttp.send();
-                        return xhttp;
-                    }
-                    var data = inner_get( url );
-                    data.onerror = function( e ) {
-                        resolve( "error" );
-                    }
-                    async function isResponseReady() {
-                        return new Promise( function( resolve2, reject ) {
-                            if ( !data.responseText || data.readyState != 4 ) {
-                                setTimeout( async function() {
-                                    var msg = await isResponseReady();
-                                    resolve2( msg );
-                                }, 1 );
-                            } else {
-                                resolve2( data.responseText );
-                            }
-                        });
-                    }
-                    var returnable = await isResponseReady();
-                    resolve( returnable );
-                });
-            }
-            async function pushBTCpmt( rawtx ) {
-                var txid = await postData( "https://mempool.space/api/tx", rawtx );
-                return txid;
-            }
-            function waitSomeSeconds( num ) {
-                var num = num.toString() + "000";
-                num = Number( num );
-                return new Promise( function( resolve, reject ) {
-                    setTimeout( function() { resolve( "" ); }, num );
-                });
-            }
-            async function postData( url, json, content_type = "", apikey = "" ) {
-                var rtext = "";
-                function inner_post( url, json, content_type = "", apikey = "" ) {
-                    var xhttp = new XMLHttpRequest();
-                    xhttp.open( "POST", url, true );
-                    if ( content_type ) {
-                        xhttp.setRequestHeader( `Content-Type`, content_type );
-                    }
-                    if ( apikey ) {
-                        xhttp.setRequestHeader( `X-Api-Key`, apikey );
-                    }
-                    xhttp.send( json );
-                    return xhttp;
-                }
-                var data = inner_post( url, json, content_type, apikey );
-                data.onerror = function( e ) {
-                    rtext = "error";
-                }
-                async function isResponseReady() {
-                    return new Promise( function( resolve, reject ) {
-                        if ( rtext == "error" ) {
-                            resolve( rtext );
-                        }
-                        if ( !data.responseText || data.readyState != 4 ) {
-                            setTimeout( async function() {
-                                var msg = await isResponseReady();
-                                resolve( msg );
-                            }, 50 );
-                        } else {
-                            resolve( data.responseText );
-                        }
-                    });
-                }
-                var returnable = await isResponseReady();
-                return returnable;
-            }
-            async function loopTilAddressReceivesMoney( address ) {
-              var itReceivedMoney = false;
-              async function isDataSetYet( data_i_seek ) {
-                return new Promise( function( resolve, reject ) {
-                  if ( !data_i_seek ) {
-                    setTimeout( async function() {
-                      console.log( "waiting for address to receive money..." );
-                      itReceivedMoney = await addressOnceHadMoney( address );
-                      var msg = await isDataSetYet( itReceivedMoney );
-                      resolve( msg );
-                    }, 2000 );
-                  } else {
-                    resolve( data_i_seek );
-                  }
-                });
-              }
-              async function getTimeoutData() {
-                var data_i_seek = await isDataSetYet( itReceivedMoney );
-                return data_i_seek;
-              }
-              var returnable = await getTimeoutData();
-              return returnable;
+
+            if(isNaN(parseInt($('#brc20-deploy-lim').value)))
+            {
+                alert('Invalid limit.');
+                return;
             }
 
-            async function addressReceivedMoneyInThisTx( address ) {
-              var txid;
-              var vout;
-              var amt;
-              var nonjson = await getData( "https://mempool.space/api/address/" + address + "/txs" );
-              var json = JSON.parse( nonjson );
-              json.forEach( function( tx ) {
-                tx[ "vout" ].forEach( function( output, index ) {
-                  if ( output[ "scriptpubkey_address" ] == address ) {
+            if($('#brc20-deploy-ticker').value == '' ||$('#brc20-deploy-ticker').value.length != 4)
+            {
+                alert('Invalid ticker length. Must be 4 characters.');
+                return;
+            }
+
+            deploy = JSON.parse(deploy);
+            deploy.tick = $('#brc20-deploy-ticker').value;
+            deploy.max = $('#brc20-deploy-max').value;
+            deploy.lim = $('#brc20-deploy-lim').value;
+
+            let mimetype = "text/plain;charset=utf-8";
+            files.push({name : deploy.tick,hex: textToHex( JSON.stringify( deploy ) ), mimetype : mimetype, sha256: ''});
+
+            console.log(files);
+        }
+
+        if ( $( '.brc20_mint_form' ).style.display != "none" ) {
+
+            files = [];
+
+            let mint = '{ \n' +
+                '  "p": "brc-20",\n' +
+                '  "op": "mint",\n' +
+                '  "tick": "",\n' +
+                '  "amt": ""\n' +
+                '}';
+
+            if(isNaN(parseInt($('#brc20-mint-amount').value)))
+            {
+                alert('Invalid mint amount.');
+                return;
+            }
+
+            if($('#brc20-mint-ticker').value == '' ||$('#brc20-mint-ticker').value.length != 4)
+            {
+                alert('Invalid ticker length. Must be 4 characters.');
+                return;
+            }
+
+            mint = JSON.parse(mint);
+            mint.tick = $('#brc20-mint-ticker').value;
+            mint.amt = $('#brc20-mint-amount').value;
+
+            let repeat = parseInt($('#brc20-mint-repeat').value);
+
+            if(isNaN(repeat))
+            {
+                alert('Invalid repeat amount.');
+                return;
+            }
+
+            for(let i = 0; i < repeat; i++)
+            {
+                let mimetype = "text/plain;charset=utf-8";
+                files.push({name : mint.tick + '_' + i,hex: textToHex( JSON.stringify( mint ) ), mimetype : mimetype, sha256: ''});
+            }
+
+            console.log(files);
+        }
+
+        if ( $( '.dns_form' ).style.display != "none" ) {
+
+            files = [];
+
+            let sats_domains = $( '.dns' ).value.split("\n");
+            let sats_domains_cleaned = [];
+
+            for(let sats_domain in sats_domains) {
+
+                let domain = sats_domains[sats_domain].trim();
+
+                if (domain == '' || sats_domains_cleaned.includes(domain)) {
+
+                    continue;
+                }
+
+                sats_domains_cleaned.push(domain);
+            }
+
+            for(let sats_domain in sats_domains_cleaned)
+            {
+
+                let mimetype = "text/plain;charset=utf-8";
+                let domain = {"p":"sns","op":"reg","name":sats_domains_cleaned[sats_domain].trim()};
+                files.push({name : sats_domains_cleaned[sats_domain].trim(),hex: textToHex( JSON.stringify( domain ) ), mimetype : mimetype, sha256: ''});
+                console.log(domain);
+            }
+        }
+
+        if(files.length == 0)
+        {
+            alert('Nothing to inscribe. Please upload some files or use one of the additional options.');
+            return;
+        }
+
+        let _padding = parseInt($('#padding').value);
+
+        if(!isNaN(_padding) && _padding <= Number.MAX_SAFE_INTEGER && _padding >= 1)
+        {
+            padding = _padding;
+        }
+        else
+        {
+            alert('Invalid padding. Please enter a sats amount for each inscription.');
+            return;
+        }
+
+        $( '.submit' ).style.display = "none";
+        $( '.startover' ).style.display = "inline-block";
+
+        const KeyPair = cryptoUtils.KeyPair;
+        const seckey = new KeyPair(privkey);
+        const pubkey   = seckey.pub.rawX;
+        const ec = new TextEncoder();
+
+        const init_script = [
+            pubkey,
+            'OP_CHECKSIG'
+        ];
+
+        const init_leaf       = await BTON.Tap.getLeaf(BTON.Script.encode(init_script));
+        const [ init_tapkey ] = await BTON.Tap.getPubkey(pubkey, [ init_leaf ]);
+        const init_cblock     = await BTON.Tap.getPath(pubkey, init_leaf);
+
+        let inscriptions = [];
+        let total_fee = 0;
+
+        let feerate = await getMinFeeRate();
+        sessionStorage[ "determined_feerate" ] = sessionStorage[ "feerate" ];
+
+        if ( sessionStorage[ "feerate" ] ) {
+
+            feerate = Number( sessionStorage[ "feerate" ] );
+            sessionStorage[ "determined_feerate" ] = sessionStorage[ "feerate" ];
+        }
+
+        for(let i = 0; i < files.length; i++)
+        {
+
+            const hex = files[i].hex;
+            const data = hexToBytes( hex );
+            const mimetype = ec.encode( files[i].mimetype );
+
+            const script = [
+                pubkey,
+                'OP_CHECKSIG',
+                'OP_0',
+                'OP_IF',
+                ec.encode('ord'),
+                '01',
+                mimetype,
+                'OP_0',
+                data,
+                'OP_ENDIF'
+            ];
+
+            const leaf       = await BTON.Tap.getLeaf(BTON.Script.encode(script));
+            const [ tapkey ] = await BTON.Tap.getPubkey(pubkey, [ leaf ]);
+            const cblock     = await BTON.Tap.getPath(pubkey, leaf);
+            let inscriptionAddress = BTON.Tap.encodeAddress( tapkey, encodedAddressPrefix );
+
+            console.log('Inscription address: ', inscriptionAddress );
+            console.log('Tapkey:', tapkey);
+
+            let txsize = 1000 + Math.floor(data.length / 4);
+
+            let fee = feerate * txsize;
+            total_fee += fee;
+
+            inscriptions.push(
+                {
+                    leaf: leaf,
+                    tapkey : tapkey,
+                    cblock : cblock,
+                    inscriptionAddress : inscriptionAddress,
+                    txsize : txsize,
+                    fee : fee,
+                    script : script
+                }
+            );
+        }
+
+        let fundingAddress = BTON.Tap.encodeAddress( init_tapkey, encodedAddressPrefix );
+        console.log('Funding address: ', fundingAddress );
+
+        let toAddress = $( '.address' ).value;
+        console.log('Address that will receive the inscription:', toAddress );
+
+        let decodedToAddress = "5120" + BTON.Tap.decodeAddress( toAddress ).hex;
+        console.log('To address decoded:', decodedToAddress );
+
+        let total_fees = ( 600 * feerate ) + total_fee + ( padding * inscriptions.length );
+
+        let sats_price = await satsToDollars( total_fees );
+        sats_price = Math.floor( sats_price * 100 ) / 100;
+
+        let html = `<p>Please send at least <strong>${total_fees} sats</strong> ($${sats_price}) to the address below (click to copy). Once you sent the amount, do NOT close this window!</p><p><input class="form-control d-inline-block" readonly="readonly" onclick="copyFundingAddress()" id="fundingAddress" type="text" value="${fundingAddress}" style="width: 80%;" /> <span id="fundingAddressCopied"></span></p>`;
+        $( '.display' ).innerHTML = html;
+
+        let qr_value = "bitcoin:" + fundingAddress + "?amount=" + satsToBitcoin( total_fees );
+        console.log( "qr:", qr_value );
+
+        $( '.display' ).append( createQR( qr_value ) );
+        $( '.display' ).innerHTML += `<p class="checking_mempool">Checking the mempool<span class="dots">.</span></p>`;
+        $( '.display' ).innerHTML += '<p>' + ( padding * inscriptions.length  ) + ` sats will go to the address</p><p>${total_fee} sats will go to miners as a mining fee</p>`;
+        $( '.display' ).style.display = "block";
+        $('#setup').style.display = "none";
+
+        await loopTilAddressReceivesMoney( fundingAddress, true );
+        await waitSomeSeconds( 2 );
+        let txinfo = await addressReceivedMoneyInThisTx( fundingAddress );
+
+        let txid = txinfo[ 0 ];
+        let vout = txinfo[ 1 ];
+        let amt = txinfo[ 2 ];
+
+        console.log( "yay! txid:", txid, "vout:", vout, "amount:", amt );
+
+        $('.modal-content').innerHTML = '<div id="funds-msg">Funds are on the way. Please wait...</div>';
+        $( '.modal' ).style.display = "block";
+
+        let outputs = [];
+
+        for(let i = 0; i < inscriptions.length; i++)
+        {
+            outputs.push(
+                {
+                    value: padding + inscriptions[i].fee,
+                    scriptPubKey: '5120' + inscriptions[i].tapkey
+                }
+            );
+        }
+
+        const init_redeemtx = {
+            version: 2,
+            input: [{
+                txid: txid,
+                vout: vout,
+                prevout: { value: amt, scriptPubKey: '5120' + init_tapkey },
+                witness: []
+            }],
+            output: outputs,
+            locktime: 0
+        };
+
+        const init_sig = await BTON.Sig.taproot.sign(seckey.raw, init_redeemtx, 0, { extention: init_leaf });
+        init_redeemtx.input[0].witness = [ init_sig, init_script, init_cblock ];
+
+        console.dir(init_redeemtx, { depth: null });
+
+        let rawtx = BTON.Tx.encode(init_redeemtx);
+        let _txid = await pushBTCpmt( rawtx );
+
+        console.log('Init TX', _txid);
+
+        async function inscribe(inscription, vout)
+        {
+
+            await loopTilAddressReceivesMoney( inscription.inscriptionAddress, true );
+            await waitSomeSeconds( 2 );
+            let txinfo2 = await addressReceivedMoneyInThisTx( inscription.inscriptionAddress );
+
+            document.getElementById('modal-reset').style.display = 'block';
+            document.getElementById('funds-msg').style.display = 'none';
+
+            let txid2 = txinfo2[ 0 ];
+            let amt2 = txinfo2[ 2 ];
+
+            const redeemtx = {
+                version: 2,
+                input: [{
+                    txid: txid2,
+                    vout: vout,
+                    prevout: { value: amt2, scriptPubKey: '5120' + inscription.tapkey },
+                    witness: []
+                }],
+                output:[{
+                    value: amt2 - inscription.fee,
+                    scriptPubKey: decodedToAddress
+                }],
+                locktime: 0
+            };
+
+            const sig = await BTON.Sig.taproot.sign(seckey.raw, redeemtx, 0, { extention: inscription.leaf });
+            redeemtx.input[0].witness = [ sig, inscription.script, inscription.cblock ];
+
+            console.dir(redeemtx, { depth: null });
+
+            let rawtx2 = BTON.Tx.encode(redeemtx);
+
+            // since we don't know any mempool space api rate limits, we will be careful with spamming
+            await isPushing();
+            pushing = true;
+            let _txid2 = await pushBTCpmt( rawtx2 );
+            await sleep(1000);
+            pushing = false;
+
+            try
+            {
+                JSON.parse(_txid2);
+
+                let html = `<p style="background-color: white; color: black;">Error: ${_txid2}</p>`;
+                html += '<hr/>';
+                $( '.modal' ).innerHTML += html;
+            }
+            catch (e)
+            {
+
+                let html = `<p style="background-color: white; color: black;">Inscription #${vout} transaction:</p><p style="word-wrap: break-word;"><a href="https://mempool.space/${mempoolNetwork}tx/${_txid2}" target="_blank">https://mempool.space/${mempoolNetwork}tx/${_txid2}</a></p>`;
+                html += `<p style="background-color: white; color: black;">Ordinals explorer (after tx confirmation):</p><p style="word-wrap: break-word;"><a href="https://ordinals.com/inscription/${_txid2}i0" target="_blank">https://ordinals.com/inscription/${_txid2}i0</a></p>`;
+                html += '<hr/>';
+                $( '.modal-content' ).innerHTML += html;
+            }
+
+            $( '.modal' ).style.display = "block";
+            $( '.black-bg' ).style.display = "block";
+        }
+
+        for(let i = 0; i < inscriptions.length; i++)
+        {
+            inscribe(inscriptions[i], i);
+        }
+    });
+
+    function arrayBufferToBuffer(ab) {
+        var buffer = new buf.Buffer(ab.byteLength)
+        var view = new Uint8Array(ab)
+        for (var i = 0; i < buffer.length; ++i) {
+            buffer[i] = view[i]
+        }
+        return buffer
+    }
+
+    function hexString(buffer) {
+        const byteArray = new Uint8Array(buffer)
+        const hexCodes = [...byteArray].map(value => {
+            return value.toString(16).padStart(2, '0')
+        })
+
+        return '0x'+hexCodes.join('')
+    }
+
+    async function fileToArrayBuffer (file) {
+        return new Promise(function (resolve, reject) {
+            const reader = new FileReader()
+            const readFile = function(event) {
+                const buffer = reader.result
+                resolve(buffer)
+            }
+
+            reader.addEventListener('load', readFile)
+            reader.readAsArrayBuffer(file)
+        })
+    }
+
+    async function bufferToSha256 (buffer) {
+        return window.crypto.subtle.digest('SHA-256', buffer)
+    }
+
+    async function fileToSha256Hex (file) {
+        const buffer = await fileToArrayBuffer(file)
+        const hash = await bufferToSha256(arrayBufferToBuffer(buffer))
+        return hexString(hash)
+    }
+
+    function copyFundingAddress() {
+        let copyText = document.getElementById("fundingAddress");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(copyText.value);
+        document.getElementById("fundingAddressCopied").innerHTML = ' Copied!';
+        setTimeout(function(){
+
+            document.getElementById("fundingAddressCopied").innerHTML = '';
+
+        }, 5000);
+    }
+
+    async function isPushing()
+    {
+        while(pushing)
+        {
+            await sleep(10);
+        }
+    }
+
+    function sleep(ms) {
+
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async function getMaxFeeRate() {
+        let fees = await getData( "https://mempool.space/"+mempoolNetwork+"api/v1/fees/recommended" );
+        fees = JSON.parse( fees );
+        // if ( !( "minimumFee" in fees ) ) return "error -- site down";
+        // var minfee = fees[ "minimumFee" ];
+        if ( !( "fastestFee" in fees ) ) return "error -- site down";
+        let maxfee = fees[ "fastestFee" ];
+        return maxfee;
+    }
+    async function getMinFeeRate() {
+        let fees = await getData( "https://mempool.space/"+mempoolNetwork+"api/v1/fees/recommended" );
+        fees = JSON.parse( fees );
+        if ( !( "minimumFee" in fees ) ) return "error -- site down";
+        let minfee = fees[ "minimumFee" ];
+        // if ( !( "fastestFee" in fees ) ) return "error -- site down";
+        // var maxfee = fees[ "fastestFee" ];
+        return minfee;
+    }
+    function isValidTaprootAddress( address ) {
+        try {
+            BTON.Tap.decodeAddress( address ).hex;
+            return true;
+        } catch( e ) {}
+        return;
+    }
+    function isValidJson( content ) {
+        if ( !content ) return;
+        try {
+            var json = JSON.parse( content );
+        } catch ( e ) {
+            return;
+        }
+        return true;
+    }
+    async function getAllFeeRates() {
+        let fees = await getData( "https://mempool.space/"+mempoolNetwork+"api/v1/fees/recommended" );
+        fees = JSON.parse( fees );
+        return fees;
+    }
+    function getData( url ) {
+        return new Promise( async function( resolve, reject ) {
+            function inner_get( url ) {
+                let xhttp = new XMLHttpRequest();
+                xhttp.open( "GET", url, true );
+                xhttp.send();
+                return xhttp;
+            }
+            let data = inner_get( url );
+            data.onerror = function( e ) {
+                resolve( "error" );
+            }
+            async function isResponseReady() {
+                return new Promise( function( resolve2, reject ) {
+                    if ( !data.responseText || data.readyState != 4 ) {
+                        setTimeout( async function() {
+                            let msg = await isResponseReady();
+                            resolve2( msg );
+                        }, 1 );
+                    } else {
+                        resolve2( data.responseText );
+                    }
+                });
+            }
+            let returnable = await isResponseReady();
+            resolve( returnable );
+        });
+    }
+    async function pushBTCpmt( rawtx ) {
+        let txid = await postData( "https://mempool.space/"+mempoolNetwork+"api/tx", rawtx );
+        return txid;
+    }
+    function waitSomeSeconds( number ) {
+        let num = number.toString() + "000";
+        num = Number( num );
+        return new Promise( function( resolve, reject ) {
+            setTimeout( function() { resolve( "" ); }, num );
+        });
+    }
+    async function postData( url, json, content_type = "", apikey = "" ) {
+        let rtext = "";
+        function inner_post( url, json, content_type = "", apikey = "" ) {
+            let xhttp = new XMLHttpRequest();
+            xhttp.open( "POST", url, true );
+            if ( content_type ) {
+                xhttp.setRequestHeader( `Content-Type`, content_type );
+            }
+            if ( apikey ) {
+                xhttp.setRequestHeader( `X-Api-Key`, apikey );
+            }
+            xhttp.send( json );
+            return xhttp;
+        }
+        let data = inner_post( url, json, content_type, apikey );
+        data.onerror = function( e ) {
+            rtext = "error";
+        }
+        async function isResponseReady() {
+            return new Promise( function( resolve, reject ) {
+                if ( rtext == "error" ) {
+                    resolve( rtext );
+                }
+                if ( !data.responseText || data.readyState != 4 ) {
+                    setTimeout( async function() {
+                        let msg = await isResponseReady();
+                        resolve( msg );
+                    }, 50 );
+                } else {
+                    resolve( data.responseText );
+                }
+            });
+        }
+        let returnable = await isResponseReady();
+        return returnable;
+    }
+    async function loopTilAddressReceivesMoney( address, includeMempool ) {
+        let itReceivedMoney = false;
+        async function isDataSetYet( data_i_seek ) {
+            return new Promise( function( resolve, reject ) {
+                if ( !data_i_seek ) {
+                    setTimeout( async function() {
+                        console.log( "waiting for address to receive money..." );
+                        itReceivedMoney = await addressOnceHadMoney( address, includeMempool );
+                        let msg = await isDataSetYet( itReceivedMoney );
+                        resolve( msg );
+                    }, 2000 );
+                } else {
+                    resolve( data_i_seek );
+                }
+            });
+        }
+        async function getTimeoutData() {
+            let data_i_seek = await isDataSetYet( itReceivedMoney );
+            return data_i_seek;
+        }
+        let returnable = await getTimeoutData();
+        return returnable;
+    }
+
+    async function addressReceivedMoneyInThisTx( address ) {
+        let txid;
+        let vout;
+        let amt;
+        let nonjson = await getData( "https://mempool.space/"+mempoolNetwork+"api/address/" + address + "/txs" );
+        let json = JSON.parse( nonjson );
+        json.forEach( function( tx ) {
+            tx[ "vout" ].forEach( function( output, index ) {
+                if ( output[ "scriptpubkey_address" ] == address ) {
                     txid = tx[ "txid" ];
                     vout = index;
                     amt = output[ "value" ];
-                  }
-                });
-              });
-              return [txid, vout, amt];
-            }
-            async function addressOnceHadMoney( address ) {
-                var url = "https://mempool.space/api/address/" + address;
-                var nonjson = await getData( url );
-                if ( !isValidJson( nonjson ) ) return false;
-                var json = JSON.parse( nonjson );
-                if ( json[ "chain_stats" ][ "tx_count" ] > 0 || json[ "mempool_stats" ][ "tx_count" ] > 0 ) {
-                    return true;
-                }
-                return false;
-            }
-            function dotLoop( string ) {
-                if ( !$( '.dots' ) ) {
-                    setTimeout( function() {dotLoop( string );}, 1000 );
-                    return;
-                }
-                if ( string.length < 3 ) {
-                    string = string + ".";
-                } else {
-                    string = ".";
-                }
-                $( '.dots' ).innerText = string;
-                setTimeout( function() {dotLoop( string );}, 1000 );
-            }
-            dotLoop( "." );
-            function timer( num ) {
-                if ( !num ) {
-                    $( '.timer' ).style.display = "none";
-                    return;
-                }
-                num = num - 1;
-                $( '.timer' ).innerText = num;
-                setTimeout( function() {timer( num );}, 1000 );
-            }
-            function satsToBitcoin( sats ) {
-                if ( sats >= 100000000 ) sats = sats * 10;
-                var string = String( sats ).padStart( 8, "0" ).slice( 0,-9 ) + "." + String( sats ).padStart( 8, "0" ).slice( -9 );
-                if ( string.substring( 0, 1 ) == "." ) string = "0" + string;
-                return string;
-            }
-
-            async function satsToDollars( sats ) {
-                if ( sats >= 100000000 ) sats = sats * 10;
-                var bitcoin_price = sessionStorage[ "bitcoin_price" ];
-                var value_in_dollars = Number( String( sats ).padStart( 8, "0" ).slice( 0,-9 ) + "." + String( sats ).padStart( 8, "0" ).slice( -9 ) ) * bitcoin_price;
-                return value_in_dollars;
-            }
-            function modalVanish() {
-                $( ".black-bg" ).style.display = "none";
-                $( ".modal" ).style.display = "none";
-            }
-            $$( '.fee' ).forEach( function( item ) {
-                item.onclick = function() {
-                    $$( '.fee .num' ).forEach( function( item2 ) {
-                        item2.style.backgroundColor = "grey";
-                    });
-                    this.getElementsByClassName( "num" )[ 0 ].style.backgroundColor = "green";
-                    sessionStorage[ "feerate" ] = this.getElementsByClassName( "num" )[ 0 ].innerText;
-                    $( '#sats_per_byte' ).innerText = Number( this.getElementsByClassName( "num" )[ 0 ].innerText );
-                    $( '#sats_range' ).value = Number( this.getElementsByClassName( "num" )[ 0 ].innerText );
                 }
             });
-            function checkAddress() {
-                if ( $( '.address' ).value && !isValidTaprootAddress( $( '.address' ).value ) ) {
-                    $( '.address' ).style.backgroundColor = "#ff5252";
-                    $( '.address' ).style.border = "2px solid red";
-                    $( '.type_of_address' ).style.border = "1px solid white";
-                } else {
-                    $( '.address' ).style.backgroundColor = "initial";
-                    $( '.address' ).style.border = "1px solid white";
-                    $( '.type_of_address' ).style.borderStyle = "none";
+        });
+        return [txid, vout, amt];
+    }
+    async function addressOnceHadMoney( address, includeMempool ) {
+        let url = "https://mempool.space/"+mempoolNetwork+"api/address/" + address;
+        let nonjson = await getData( url );
+        if ( !isValidJson( nonjson ) ) return false;
+        let json = JSON.parse( nonjson );
+        if ( json[ "chain_stats" ][ "tx_count" ] > 0 || ( includeMempool && json[ "mempool_stats" ][ "tx_count" ] > 0 ) ) {
+            return true;
+        }
+        return false;
+    }
+    function dotLoop( string ) {
+        if ( !$( '.dots' ) ) {
+            setTimeout( function() {dotLoop( string );}, 1000 );
+            return;
+        }
+        if ( string.length < 3 ) {
+            string = string + ".";
+        } else {
+            string = ".";
+        }
+        $( '.dots' ).innerText = string;
+        setTimeout( function() {dotLoop( string );}, 1000 );
+    }
+    dotLoop( "." );
+    function timer( num ) {
+        if ( !num ) {
+            $( '.timer' ).style.display = "none";
+            return;
+        }
+        num = num - 1;
+        $( '.timer' ).innerText = num;
+        setTimeout( function() {timer( num );}, 1000 );
+    }
+    function satsToBitcoin( sats ) {
+        if ( sats >= 100000000 ) sats = sats * 10;
+        let string = String( sats ).padStart( 8, "0" ).slice( 0,-9 ) + "." + String( sats ).padStart( 8, "0" ).slice( -9 );
+        if ( string.substring( 0, 1 ) == "." ) string = "0" + string;
+        return string;
+    }
+
+    async function satsToDollars( sats ) {
+        if ( sats >= 100000000 ) sats = sats * 10;
+        let bitcoin_price = sessionStorage[ "bitcoin_price" ];
+        let value_in_dollars = Number( String( sats ).padStart( 8, "0" ).slice( 0,-9 ) + "." + String( sats ).padStart( 8, "0" ).slice( -9 ) ) * bitcoin_price;
+        return value_in_dollars;
+    }
+    function modalVanish() {
+        $( ".black-bg" ).style.display = "none";
+        $( ".modal" ).style.display = "none";
+    }
+    $$( '.fee' ).forEach( function( item ) {
+        item.onclick = function() {
+            $$( '.fee .num' ).forEach( function( item2 ) {
+                item2.style.backgroundColor = "grey";
+            });
+            this.getElementsByClassName( "num" )[ 0 ].style.backgroundColor = "green";
+            sessionStorage[ "feerate" ] = this.getElementsByClassName( "num" )[ 0 ].innerText;
+            $( '#sats_per_byte' ).innerText = Number( this.getElementsByClassName( "num" )[ 0 ].innerText );
+            $( '#sats_range' ).value = Number( this.getElementsByClassName( "num" )[ 0 ].innerText );
+        }
+    });
+
+    function isValidAddress() {
+
+        if ( !isValidTaprootAddress( $( '.address' ).value ) ) {
+            return false;
+        }
+
+        return true;
+    }
+
+    function checkAddress() {
+        if ( !isValidAddress() ) {
+            $( '.address' ).style.backgroundColor = "#ff5252";
+            $( '.address' ).style.border = "2px solid red";
+            $( '.type_of_address' ).style.border = "1px solid white";
+        } else {
+            $( '.address' ).style.backgroundColor = "initial";
+            $( '.address' ).style.border = "1px solid white";
+            $( '.type_of_address' ).style.borderStyle = "none";
+        }
+    }
+
+    $( '.address' ).onchange = checkAddress;
+    $( '.address' ).onpaste = checkAddress;
+    $( '.address' ).onkeyup = checkAddress;
+
+    async function isUsedDomain( domain ) {
+        let data = await getData( `https://api.sats.id/names/${domain}` );
+        console.log( "data:", data );
+        data = JSON.parse( data );
+        console.log( "data:", data );
+        if ( "name" in data ) return true;
+        if ( data[ "error" ] == "Too many requests" ) return null;
+        return false;
+    }
+    async function checkDomain() {
+
+        $('.dns_checker').innerHTML = 'Please wait...';
+
+        let i = 1;
+        let registered = [];
+        let rate_limited = false;
+        let sats_domains = $( '.dns' ).value.split("\n");
+        let sats_domains_cleaned = [];
+
+        for(let sats_domain in sats_domains) {
+
+            let domain = sats_domains[sats_domain].trim();
+
+            if (domain == '' || sats_domains_cleaned.includes(domain)) {
+
+                continue;
+            }
+
+            sats_domains_cleaned.push(domain);
+        }
+
+        for(let sats_domain in sats_domains_cleaned)
+        {
+
+            let domain = sats_domains_cleaned[sats_domain].trim();
+
+            $('.dns_checker').innerHTML = 'Checking...(' + i + '/'+sats_domains_cleaned.length+')';
+
+            let isUsed = await isUsedDomain( domain );
+
+            if ( domain && isUsed === true ) {
+
+                registered.push(domain);
+
+            } else if ( domain && isUsed === null ) {
+
+                rate_limited = true;
+                break;
+            }
+
+            await sleep(1000);
+
+            i++;
+        }
+
+        $('.dns_checker').innerHTML = 'Check availability';
+
+        if(rate_limited)
+        {
+            alert( 'Cannot check any domain availability as a rate limit occurred.' );
+        }
+
+        if(registered.length != 0)
+        {
+            alert( 'The domain(s) ' + registered.join(', ') + ' is/are already registered.' );
+        }
+        else
+        {
+            alert('All domains are available.');
+        }
+    }
+
+    $( '.dns_checker' ).onclick = checkDomain;
+    $('#bytes_checker').onclick = async function()
+    {
+        $('#bytes_checker').innerHTML = 'Please wait...';
+
+        let inscribed_already = [];
+        let errors = [];
+
+        for(let i = 0; i < files.length; i++)
+        {
+            $('#bytes_checker').innerHTML = 'Please wait...(' + (i+1) + '/' + files.length + ')';
+
+            let hash_result = await getData('https://ordinalsbot.com/api/search?hash=' + files[i].sha256);
+
+            try
+            {
+                hash_result = JSON.parse(hash_result);
+
+                if(hash_result.results.length != 0)
+                {
+                    inscribed_already.push(files[i].name);
                 }
             }
-            $( '.address' ).onchange = checkAddress;
-            $( '.address' ).onpaste = checkAddress;
-            $( '.address' ).onkeyup = checkAddress;
-            async function isUsedDomain( domain ) {
-                var data = await getData( `https://api.sats.id/names/${domain}` );
-                console.log( "data:", data );
-                data = JSON.parse( data );
-                console.log( "data:", data );
-                if ( "name" in data ) return true;
-                if ( data[ "error" ] == "Too many requests" ) return;
-                return false;
+            catch(e)
+            {
+                errors.push(files[i].name);
             }
-            async function checkDomain() {
-                var isUsed = await isUsedDomain( $( '.dns' ).value );
-                if ( $( '.dns' ).value && isUsed ) {
-                    alert( `This domain is already registered, please try a different one` );
-                } else if ( $( '.dns' ).value && isUsed == undefined ) {
-                    timer( 61 );
-                    $( '.timer' ).style.display = "inline";
-                    alert( `You can only check one domain per minute, please try again in another minute` );
-                } else {
-                    alert( `This domain is available, go for it!` );
-                }
-            }
-            $( '.dns_checker' ).onclick = checkDomain;
-            async function init( num ) {
-                if ( !num ) {
-                    var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-                    if ( isSafari ) $( '.safari_warning' ).style.display = "block";
-                    var minfee = await getMinFeeRate();
-                    $( '#sats_per_byte' ).innerText = minfee;
-                    $( '#sats_range' ).value = minfee;
-                }
-                num = num + 1;
-                var allrates = await getAllFeeRates();
-                $( '.minfee .num' ).innerText = allrates[ "minimumFee" ];
-                $( '.midfee .num' ).innerText = allrates[ "hourFee" ];
-                $( '.maxfee .num' ).innerText = allrates[ "fastestFee" ];
-                var isgreen;
-                $$( '.fee .num' ).forEach( function( item ) {
-                    if ( item.style.backgroundColor == "green" || getComputedStyle( item ).backgroundColor == "rgb(0, 128, 0)" ) isgreen = item;
-                });
-                if ( isgreen ) {
-                    $( '#sats_per_byte' ).innerText = Number( isgreen.innerText );
-                    $( '#sats_range' ).value = Number( isgreen.innerText );
-                    sessionStorage[ "feerate" ] = isgreen.innerText;
-                }
-                sessionStorage[ "bitcoin_price" ] = await getBitcoinPrice();
-                await waitSomeSeconds( 10 );
-                init( num );
-            }
-            init( 0 );
-        </script>
-        <div class="black-bg" onclick="modalVanish();"></div>
-        <div class="modal"></div>
-    </body>
+            await sleep(1000);
+        }
+
+        if(inscribed_already.length != 0)
+        {
+            alert("The following files are inscribed already: " + inscribed_already.join(', '));
+        }
+
+        if(errors.length != 0)
+        {
+            alert("Could not check the following files due to an error: " + inscribed_already.join(', '));
+        }
+
+        if(inscribed_already.length == 0)
+        {
+            alert("Your files seem not to be inscribed yet.");
+        }
+
+        $('#bytes_checker').innerHTML = 'Check if file(s) are inscribed already';
+    }
+
+    async function init( num ) {
+        if ( !num ) {
+            let isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+            if ( isSafari ) $( '.safari_warning' ).style.display = "block";
+            let minfee = await getMinFeeRate();
+            $( '#sats_per_byte' ).innerText = minfee;
+            $( '#sats_range' ).value = minfee;
+        }
+        num = num + 1;
+        let allrates = await getAllFeeRates();
+        $( '.minfee .num' ).innerText = allrates[ "minimumFee" ];
+        $( '.midfee .num' ).innerText = allrates[ "hourFee" ];
+        $( '.maxfee .num' ).innerText = allrates[ "fastestFee" ];
+        let isgreen;
+        $$( '.fee .num' ).forEach( function( item ) {
+            if ( item.style.backgroundColor == "green" || getComputedStyle( item ).backgroundColor == "rgb(0, 128, 0)" ) isgreen = item;
+        });
+        if ( isgreen ) {
+            $( '#sats_per_byte' ).innerText = Number( isgreen.innerText );
+            $( '#sats_range' ).value = Number( isgreen.innerText );
+            sessionStorage[ "feerate" ] = isgreen.innerText;
+        }
+        sessionStorage[ "bitcoin_price" ] = await getBitcoinPrice();
+        await waitSomeSeconds( 10 );
+        init( num );
+    }
+    init( 0 );
+</script>
+<div class="black-bg" onclick="modalVanish();"></div>
+<div class="modal"><div class="modal-content text-truncate"></div><button id="modal-reset" class="btn btn-primary" style="margin-top: 15px; display: none;" onclick="location.reload();">Reset</button></div>
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.bundle.min.js"></script>
+<script src="js/owl.carousel.min.js"></script>
+<script src="js/custom.js"></script>
+</body>
 </html>
