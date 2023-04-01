@@ -841,6 +841,7 @@
         init_redeemtx.input[0].witness = [init_sig, init_script, init_cblock];
 
         console.dir(init_redeemtx, {depth: null});
+        console.log('YOUR SECKEY', seckey);
 
         let rawtx = BTON.Tx.encode(init_redeemtx);
         let _txid = await pushBTCpmt(rawtx);
