@@ -259,8 +259,8 @@
 </head>
 <body>
 
-<h1>Ordinals Bulk Inscriptions</h1>
-<h6 style="margin-top: -15px;">Self-custodial. A free service hosted by <a href="https://rarity.garden" target="_blank">RarityGarden</a>.</h6>
+<h1>Looks Ordinal</h1>
+<h6 style="margin-top: -15px;">Self-custodial bulk inscriptions. A free service hosted by <a href="https://rarity.garden" target="_blank">RarityGarden</a>.</h6>
 <h2 class="safari_warning">This tool may not work in safari browser. If you are using that, consider switching.</h2>
 <div id="setup">
 
@@ -683,6 +683,11 @@
             return;
         }
 
+        if (files.length >= 26) {
+            alert('Max. batch size is 25. Please remove some of your inscriptions and split them into many batches.');
+            return;
+        }
+
         let _padding = parseInt($('#padding').value);
 
         if (!isNaN(_padding) && _padding <= Number.MAX_SAFE_INTEGER && _padding >= 1) {
@@ -691,6 +696,8 @@
             alert('Invalid padding. Please enter a sats amount for each inscription.');
             return;
         }
+
+        alert("AFTER YOU SENT YOUR SATS DO _NOT_ CLOSE THIS BROWSER WINDOW OR YOUR FUNDS MAY GET LOST.\n\nTHIS IS A SELF-CUSTODIAL INSCRIBER NOT A CENTRALIZED ONE.\n\nCLICK OK AND ONLY PROCEED IF YOU UNDERSTOOD THAT.");
 
         $('.submit').style.display = "none";
         $('.startover').style.display = "inline-block";
@@ -1420,10 +1427,10 @@
 </div>
 <hr style="margin-top: 30px;"/>
 <div style="text-align: center;font-size: 14px;">
-Ordinals Bulk Inscriptions is a fork of <a style="font-size: 14px;" href="https://inscribetheplanet.com" target="_blank">Inscribe the planet</a> (<a style="font-size: 14px;" href="https://github.com/supertestnet/inscriptions-online/" target="_blank">Github</a>)
+    Looks Ordinal is a fork of <a style="font-size: 14px;" href="https://inscribetheplanet.com" target="_blank">Inscribe the planet</a> (<a style="font-size: 14px;" href="https://github.com/BennyTheDev/inscriptions-online" target="_blank">Github</a>)
 </div>
 <div style="text-align: center;font-size: 14px;">
-Features and experiences between forks might differ.
+    Features and experiences between forks might differ.
 </div>
 </body>
 </html>

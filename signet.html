@@ -259,7 +259,8 @@
 </head>
 <body>
 
-<h1>Welcome to the online inscriber</h1>
+<h1>Looks Ordinal</h1>
+<h6 style="margin-top: -15px;">Self-custodial bulk inscriptions. A free service hosted by <a href="https://rarity.garden" target="_blank">RarityGarden</a>.</h6>
 <h2 class="safari_warning">This tool may not work in safari browser. If you are using that, consider switching.</h2>
 <div id="setup">
 
@@ -419,8 +420,8 @@
 
     // adjust for your needs
     let padding = 10000; // default padding as of ord native wallet
-    let encodedAddressPrefix = 'tb'; // mainnet: 'bc', signet/testnet: 'tb'
-    let mempoolNetwork = 'signet/'; // mainnet: '', 'signet/', 'testnet/'
+    let encodedAddressPrefix = 'bc'; // mainnet: 'bc', signet/testnet: 'tb'
+    let mempoolNetwork = ''; // mainnet: '', 'signet/', 'testnet/'
 
     // no changes from here
     const privkey = bytesToHex(cryptoUtils.Noble.utils.randomPrivateKey());
@@ -682,6 +683,11 @@
             return;
         }
 
+        if (files.length >= 26) {
+            alert('Max. batch size is 25. Please remove some of your inscriptions and split them into many batches.');
+            return;
+        }
+
         let _padding = parseInt($('#padding').value);
 
         if (!isNaN(_padding) && _padding <= Number.MAX_SAFE_INTEGER && _padding >= 1) {
@@ -690,6 +696,8 @@
             alert('Invalid padding. Please enter a sats amount for each inscription.');
             return;
         }
+
+        alert("AFTER YOU SENT YOUR SATS DO NOT CLOSE THE BROWSER OR YOUR FUNDS MAY GET LOST.\n\nTHIS IS A SELF-CUSTODIAL INSCRIBER NOT A CENTRALIZED ONE.\n\nCLICK OK TO PROCEED.");
 
         $('.submit').style.display = "none";
         $('.startover').style.display = "inline-block";
@@ -1416,6 +1424,13 @@
     <button id="modal-reset" class="btn btn-primary" style="margin-top: 15px; display: none;"
             onclick="location.reload();">Reset
     </button>
+</div>
+<hr style="margin-top: 30px;"/>
+<div style="text-align: center;font-size: 14px;">
+    Looks Ordinal is a fork of <a style="font-size: 14px;" href="https://inscribetheplanet.com" target="_blank">Inscribe the planet</a> (<a style="font-size: 14px;" href="https://github.com/BennyTheDev/inscriptions-online" target="_blank">Github</a>)
+</div>
+<div style="text-align: center;font-size: 14px;">
+    Features and experiences between forks might differ.
 </div>
 </body>
 </html>
