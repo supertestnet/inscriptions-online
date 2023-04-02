@@ -562,6 +562,14 @@
             return;
         }
 
+        let mempool_success = await probeAddress($('.address').value, true);
+
+        if(!mempool_success)
+        {
+            alert('Could not establish a connection to Mempool.space. Most likely you got rate limited. Please wait a few minutes before you try inscribing.');
+            return;
+        }
+
         if ($('.brc20_deploy_form').style.display != "none") {
 
             files = [];
@@ -697,7 +705,7 @@
             return;
         }
 
-        alert("AFTER YOU SENT YOUR SATS DO NOT CLOSE THE BROWSER OR YOUR FUNDS MAY GET LOST.\n\nTHIS IS A SELF-CUSTODIAL INSCRIBER NOT A CENTRALIZED ONE.\n\nCLICK OK TO PROCEED.");
+        alert("AFTER YOU SEND YOUR SATS DO _NOT_ CLOSE THE BROWSER TAB OR YOUR FUNDS MAY GET LOST.\n\nTHIS IS A SELF-CUSTODIAL INSCRIBER NOT A CENTRALIZED ONE.\n\nCLICK OK AND ONLY PROCEED IF YOU UNDERSTAND THIS.");
 
         $('.submit').style.display = "none";
         $('.startover').style.display = "inline-block";
@@ -1191,6 +1199,13 @@
             return true;
         }
         return false;
+    }
+
+    async function probeAddress(address) {
+        let url = "https://mempool.space/" + mempoolNetwork + "api/address/" + address;
+        let nonjson = await getData(url);
+        if (!isValidJson(nonjson)) return false;
+        return true;
     }
 
     function dotLoop(string) {
