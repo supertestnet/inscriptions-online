@@ -695,7 +695,7 @@
                 return;
             }
 
-            if (!isValidAddress($('#brc20-transfer-to').value)) {
+            if (!isValidAddress2($('#brc20-transfer-to').value)) {
                 alert('Invalid token recipient address. Must be a taproot address.');
                 return;
             }
@@ -1382,6 +1382,15 @@
     function isValidAddress() {
 
         if (!isValidTaprootAddress($('.address').value)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    function isValidAddress2(address) {
+
+        if (!isValidTaprootAddress(address)) {
             return false;
         }
 

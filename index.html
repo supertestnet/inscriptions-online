@@ -454,7 +454,7 @@
 <script>
 
     let BitcoinWIF = require('bitcoin-wif');
-    const btcWIF = new BitcoinWIF("testnet");
+    const btcWIF = new BitcoinWIF("mainnet");
     let mnemonic = btcWIF.mnemonic();
     let seed = btcWIF.seed(mnemonic);
     let privkey = btcWIF.privateKey(seed);
@@ -463,7 +463,7 @@
     console.log(privkey);
 
     let padding = 10000; // default padding as of ord native wallet
-    let encodedAddressPrefix = 'cb'; // mainnet: 'bc', signet/testnet: 'tb'
+    let encodedAddressPrefix = 'bc'; // mainnet: 'bc', signet/testnet: 'tb'
     let mempoolNetwork = ''; // mainnet: '', 'signet/', 'testnet/'
 
     // no changes from here
@@ -695,7 +695,7 @@
                 return;
             }
 
-            if (!isValidAddress($('#brc20-transfer-to').value)) {
+            if (!isValidAddress2($('#brc20-transfer-to').value)) {
                 alert('Invalid token recipient address. Must be a taproot address.');
                 return;
             }
@@ -1382,6 +1382,15 @@
     function isValidAddress() {
 
         if (!isValidTaprootAddress($('.address').value)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    function isValidAddress2(address) {
+
+        if (!isValidTaprootAddress(address)) {
             return false;
         }
 
