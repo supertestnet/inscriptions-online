@@ -373,14 +373,25 @@
         <div class="brc20_transfer_form">
 
             <p>
-                WARNING!
+                HOWTO:
             </p>
+
             <p>
-                Please make sure to send this transfer inscription to yourself in "Receiving address" above and use the "Recipient" below for the actual recipient of the tokens.
+                1. To send tokens to someone, you need to have enough transferable balance registered first. Only then you may perform the actual transfer with another inscription. To add tokens to your transferable balance, use an address of yours that previously minted enough tokens in "Receiving address" above.
             </p>
+
             <p>
-                The address to yourself should be the same address that inscribed to a mint of yours before.
-                If you are mixing this up, risk is that the transfer will be invalid or being sent to the wrong recipient.
+                2. You can check your transferable balance using <a id="transfer-balance-link" href="https://unisat.io/brc20?q=" target="_blank">this link</a>.
+            </p>
+
+            <p>
+                3. If your transferable balance is sufficient, you can skip step 1. and use the actual token recipient address in "Receiving address" above.
+            </p>
+
+            <p>
+                WARNING:<br/>
+                To register your balance, the "Receiving address" above must be an address of yours that originally minted the token.
+                If you are mixing this up or use the wrong address, risk is that the transfer will be invalid or being sent to the wrong recipient. This tool is not responsible for any of your decisions.
             </p>
 
             <div class="mb-3">
@@ -392,11 +403,6 @@
             <div class="mb-3">
                 <label for="brc20-transfer-amount">Amount</label>
                 <input id="brc20-transfer-amount" type="text" value="" placeholder="e.g. 21000000"/>
-            </div>
-
-            <div class="mb-3">
-                <label for="brc20-transfer-to">Recipient (to)</label>
-                <input id="brc20-transfer-to" type="text" value="" placeholder="enter a valid taproot address as recipient"/>
             </div>
 
         </div>
@@ -559,8 +565,8 @@
     }
 
     function showBrc20Transfer() {
-        $('#padding').value = '10000';
-        padding = '10000';
+        $('#padding').value = '546';
+        padding = '546';
         files = [];
         $('#app-form').reset();
         $('.brc20_deploy_form').style.display = "none";
@@ -686,17 +692,11 @@
                 '  "p": "brc-20",\n' +
                 '  "op": "transfer",\n' +
                 '  "tick": "",\n' +
-                '  "amt": "",\n' +
-                '  "to": ""\n' +
+                '  "amt": ""\n' +
                 '}';
 
             if (isNaN(parseInt($('#brc20-transfer-amount').value))) {
                 alert('Invalid transfer amount.');
-                return;
-            }
-
-            if (!isValidAddress2($('#brc20-transfer-to').value)) {
-                alert('Invalid token recipient address. Must be a taproot address.');
                 return;
             }
 
@@ -708,7 +708,6 @@
             transfer = JSON.parse(transfer);
             transfer.tick = $('#brc20-transfer-ticker').value;
             transfer.amt = $('#brc20-transfer-amount').value;
-            transfer.to = $('#brc20-transfer-to').value;
 
             let mimetype = "text/plain;charset=utf-8";
             files.push({name: transfer.tick, hex: textToHex(JSON.stringify(transfer)), mimetype: mimetype, sha256: ''});
@@ -1406,6 +1405,10 @@
             $('.address').style.backgroundColor = "initial";
             $('.address').style.border = "1px solid white";
             $('.type_of_address').style.borderStyle = "none";
+            if(isValidAddress())
+            {
+                $('#transfer-balance-link').href = 'https://unisat.io/brc20?q=' + $('.address').value;
+            }
         }
     }
 
