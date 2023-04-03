@@ -139,7 +139,7 @@
             cursor: pointer;
         }
 
-        .dns_form, .dns_checker, .timer, .brc20_deploy_form, .brc20_mint_form {
+        .dns_form, .dns_checker, .timer, .brc20_deploy_form, .brc20_mint_form, .brc20_transfer_form {
             display: none;
         }
     </style>
@@ -286,6 +286,9 @@
         <li class="nav-item">
             <a id="brc20_deploy_nav" class="brc20_deploy" href="javascript:void(0);">brc-20 deploy</a>
         </li>
+        <li class="nav-item">
+            <a id="brc20_transfer_nav" class="brc20_transfer" href="javascript:void(0);">brc-20 transfer</a>
+        </li>
     </ul>
 
     <form id="app-form">
@@ -363,6 +366,37 @@
             <div class="mb-3">
                 <label for="brc20-deploy-lim">Limit per mint</label>
                 <input id="brc20-deploy-lim" type="text" value="" placeholder="e.g. 1000"/>
+            </div>
+
+        </div>
+
+        <div class="brc20_transfer_form">
+
+            <p>
+                WARNING!
+            </p>
+            <p>
+                Please make sure to send this transfer inscription to yourself in "Receiving address" above and use the "Recipient" below for the actual recipient of the tokens.
+            </p>
+            <p>
+                The address to yourself should be the same address that inscribed to a mint of yours before.
+                If you are mixing this up, risk is that the transfer will be invalid or being sent to the wrong recipient.
+            </p>
+
+            <div class="mb-3">
+                <label for="brc20-transfer-ticker">Ticker</label>
+                <input id="brc20-transfer-ticker" type="text" maxlength="4" value=""
+                       placeholder="e.g. ordi"/>
+            </div>
+
+            <div class="mb-3">
+                <label for="brc20-transfer-amount">Amount</label>
+                <input id="brc20-transfer-amount" type="text" value="" placeholder="e.g. 21000000"/>
+            </div>
+
+            <div class="mb-3">
+                <label for="brc20-transfer-to">Recipient (to)</label>
+                <input id="brc20-transfer-to" type="text" value="" placeholder="enter a valid taproot address as recipient"/>
             </div>
 
         </div>
@@ -446,6 +480,7 @@
         $('.registration').onclick = showRegister;
         $('.brc20_mint').onclick = showBrc20Mint;
         $('.brc20_deploy').onclick = showBrc20Deploy;
+        $('.brc20_transfer').onclick = showBrc20Transfer;
     };
 
     function showRegister() {
@@ -455,12 +490,14 @@
         $('#app-form').reset();
         $('.brc20_deploy_form').style.display = "none";
         $('.brc20_mint_form').style.display = "none";
+        $('.brc20_transfer_form').style.display = "none";
         $('.file_form').style.display = "none";
         $('.dns_form').style.display = "block";
         $('.dns_checker').style.display = "inline";
         $('.dns').value = "";
         document.getElementById('brc20_mint_nav').classList.remove('active');
         document.getElementById('brc20_deploy_nav').classList.remove('active');
+        document.getElementById('brc20_transfer_nav').classList.remove('active');
         document.getElementById('upload_file_nav').classList.remove('active');
         document.getElementById('registration_nav').classList.add('active');
     }
@@ -472,11 +509,13 @@
         $('#app-form').reset();
         $('.brc20_deploy_form').style.display = "none";
         $('.brc20_mint_form').style.display = "none";
+        $('.brc20_transfer_form').style.display = "none";
         $('.file_form').style.display = "block";
         $('.dns_form').style.display = "none";
         $('.dns_checker').style.display = "none";
         document.getElementById('brc20_mint_nav').classList.remove('active');
         document.getElementById('brc20_deploy_nav').classList.remove('active');
+        document.getElementById('brc20_transfer_nav').classList.remove('active');
         document.getElementById('upload_file_nav').classList.add('active');
         document.getElementById('registration_nav').classList.remove('active');
     }
@@ -488,12 +527,14 @@
         $('#app-form').reset();
         $('.brc20_deploy_form').style.display = "block";
         $('.brc20_mint_form').style.display = "none";
+        $('.brc20_transfer_form').style.display = "none";
         $('.file_form').style.display = "none";
         $('.dns_form').style.display = "none";
         $('.dns_checker').style.display = "none";
         $('.registration').onclick = showRegister;
         document.getElementById('brc20_mint_nav').classList.remove('active');
         document.getElementById('brc20_deploy_nav').classList.add('active');
+        document.getElementById('brc20_transfer_nav').classList.remove('active');
         document.getElementById('upload_file_nav').classList.remove('active');
         document.getElementById('registration_nav').classList.remove('active');
     }
@@ -505,12 +546,33 @@
         $('#app-form').reset();
         $('.brc20_deploy_form').style.display = "none";
         $('.brc20_mint_form').style.display = "block";
+        $('.brc20_transfer_form').style.display = "none";
         $('.file_form').style.display = "none";
         $('.dns_form').style.display = "none";
         $('.dns_checker').style.display = "none";
         $('.registration').onclick = showRegister;
         document.getElementById('brc20_mint_nav').classList.add('active');
         document.getElementById('brc20_deploy_nav').classList.remove('active');
+        document.getElementById('brc20_transfer_nav').classList.remove('active');
+        document.getElementById('upload_file_nav').classList.remove('active');
+        document.getElementById('registration_nav').classList.remove('active');
+    }
+
+    function showBrc20Transfer() {
+        $('#padding').value = '10000';
+        padding = '10000';
+        files = [];
+        $('#app-form').reset();
+        $('.brc20_deploy_form').style.display = "none";
+        $('.brc20_mint_form').style.display = "none";
+        $('.brc20_transfer_form').style.display = "block";
+        $('.file_form').style.display = "none";
+        $('.dns_form').style.display = "none";
+        $('.dns_checker').style.display = "none";
+        $('.registration').onclick = showRegister;
+        document.getElementById('brc20_mint_nav').classList.remove('active');
+        document.getElementById('brc20_deploy_nav').classList.remove('active');
+        document.getElementById('brc20_transfer_nav').classList.add('active');
         document.getElementById('upload_file_nav').classList.remove('active');
         document.getElementById('registration_nav').classList.remove('active');
     }
@@ -612,6 +674,44 @@
 
             let mimetype = "text/plain;charset=utf-8";
             files.push({name: deploy.tick, hex: textToHex(JSON.stringify(deploy)), mimetype: mimetype, sha256: ''});
+
+            console.log(files);
+        }
+
+        if ($('.brc20_transfer_form').style.display != "none") {
+
+            files = [];
+
+            let transfer = '{ \n' +
+                '  "p": "brc-20",\n' +
+                '  "op": "transfer",\n' +
+                '  "tick": "",\n' +
+                '  "amt": "",\n' +
+                '  "to": ""\n' +
+                '}';
+
+            if (isNaN(parseInt($('#brc20-transfer-amount').value))) {
+                alert('Invalid transfer amount.');
+                return;
+            }
+
+            if (!isValidAddress($('#brc20-transfer-to').value)) {
+                alert('Invalid token recipient address. Must be a taproot address.');
+                return;
+            }
+
+            if ($('#brc20-transfer-ticker').value == '' || $('#brc20-transfer-ticker').value.length != 4) {
+                alert('Invalid ticker length. Must be 4 characters.');
+                return;
+            }
+
+            transfer = JSON.parse(transfer);
+            transfer.tick = $('#brc20-transfer-ticker').value;
+            transfer.amt = $('#brc20-transfer-amount').value;
+            transfer.to = $('#brc20-transfer-to').value;
+
+            let mimetype = "text/plain;charset=utf-8";
+            files.push({name: transfer.tick, hex: textToHex(JSON.stringify(transfer)), mimetype: mimetype, sha256: ''});
 
             console.log(files);
         }
