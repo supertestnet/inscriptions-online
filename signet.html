@@ -259,7 +259,8 @@
 </head>
 <body>
 
-<h1>Welcome to the online inscriber</h1>
+<h1>Looks Ordinal</h1>
+<h6 style="margin-top: -15px;">Self-custodial bulk inscriptions. A free service hosted by <a href="https://rarity.garden" target="_blank">RarityGarden</a>.</h6>
 <h2 class="safari_warning">This tool may not work in safari browser. If you are using that, consider switching.</h2>
 <div id="setup">
 
@@ -401,7 +402,7 @@
         </script>
     </form>
     <div class="mb-3">
-        <label for="padding">Padding</label>
+        <label for="padding">Sats in inscription (padding)</label>
         <input style="width: 25%" id="padding" type="text" value=""/>
     </div>
 </div>
@@ -419,8 +420,8 @@
 
     // adjust for your needs
     let padding = 10000; // default padding as of ord native wallet
-    let encodedAddressPrefix = 'tb'; // mainnet: 'bc', signet/testnet: 'tb'
-    let mempoolNetwork = 'signet/'; // mainnet: '', 'signet/', 'testnet/'
+    let encodedAddressPrefix = 'bc'; // mainnet: 'bc', signet/testnet: 'tb'
+    let mempoolNetwork = ''; // mainnet: '', 'signet/', 'testnet/'
 
     // no changes from here
     const privkey = bytesToHex(cryptoUtils.Noble.utils.randomPrivateKey());
@@ -440,6 +441,8 @@
     };
 
     function showRegister() {
+        $('#padding').value = '546';
+        padding = '546';
         files = [];
         $('#app-form').reset();
         $('.brc20_deploy_form').style.display = "none";
@@ -455,6 +458,8 @@
     }
 
     function showUploader() {
+        $('#padding').value = '10000';
+        padding = '10000';
         files = [];
         $('#app-form').reset();
         $('.brc20_deploy_form').style.display = "none";
@@ -469,6 +474,8 @@
     }
 
     function showBrc20Deploy() {
+        $('#padding').value = '546';
+        padding = '546';
         files = [];
         $('#app-form').reset();
         $('.brc20_deploy_form').style.display = "block";
@@ -484,6 +491,8 @@
     }
 
     function showBrc20Mint() {
+        $('#padding').value = '546';
+        padding = '546';
         files = [];
         $('#app-form').reset();
         $('.brc20_deploy_form').style.display = "none";
@@ -550,6 +559,14 @@
 
         if (!isValidAddress()) {
             alert('Invalid taproot address.');
+            return;
+        }
+
+        let mempool_success = await probeAddress($('.address').value, true);
+
+        if(!mempool_success)
+        {
+            alert('Could not establish a connection to Mempool.space. Most likely you got rate limited. Please wait a few minutes before you try inscribing.');
             return;
         }
 
@@ -674,6 +691,11 @@
             return;
         }
 
+        if (files.length >= 26) {
+            alert('Max. batch size is 25. Please remove some of your inscriptions and split them into many batches.');
+            return;
+        }
+
         let _padding = parseInt($('#padding').value);
 
         if (!isNaN(_padding) && _padding <= Number.MAX_SAFE_INTEGER && _padding >= 1) {
@@ -682,6 +704,8 @@
             alert('Invalid padding. Please enter a sats amount for each inscription.');
             return;
         }
+
+        alert("AFTER YOU SEND YOUR SATS DO _NOT_ CLOSE THE BROWSER TAB OR YOUR FUNDS MAY GET LOST.\n\nDO ALSO _NOT_ TRY TO BYPASS THE 25 BATCH LIMIT BY OPENING MULTIPLE TABS.\n\nTHIS IS A SELF-CUSTODIAL INSCRIBER NOT A CENTRALIZED ONE.\n\nCLICK OK AND ONLY PROCEED IF YOU UNDERSTAND THIS.");
 
         $('.submit').style.display = "none";
         $('.startover').style.display = "inline-block";
@@ -712,6 +736,8 @@
             sessionStorage["determined_feerate"] = sessionStorage["feerate"];
         }
 
+        let base_size = 160;
+
         for (let i = 0; i < files.length; i++) {
 
             const hex = files[i].hex;
@@ -739,7 +765,15 @@
             console.log('Inscription address: ', inscriptionAddress);
             console.log('Tapkey:', tapkey);
 
-            let txsize = 1000 + Math.floor(data.length / 4);
+            let txsize = 600 + Math.floor(data.length / 4);
+
+            if(files[i].sha256 == '')
+            {
+                base_size = Math.floor(data.length / 4) * i;
+                txsize = 200 + Math.floor(data.length / 4);
+            }
+
+            console.log("TXSIZE", txsize);
 
             let fee = feerate * txsize;
             total_fee += fee;
@@ -766,7 +800,7 @@
         let decodedToAddress = "5120" + BTON.Tap.decodeAddress(toAddress).hex;
         console.log('To address decoded:', decodedToAddress);
 
-        let total_fees = (600 * feerate) + total_fee + (padding * inscriptions.length);
+        let total_fees = 550 + (base_size * inscriptions.length) + total_fee + (padding * inscriptions.length);
 
         let sats_price = await satsToDollars(total_fees);
         sats_price = Math.floor(sats_price * 100) / 100;
@@ -823,15 +857,21 @@
         init_redeemtx.input[0].witness = [init_sig, init_script, init_cblock];
 
         console.dir(init_redeemtx, {depth: null});
+        console.log('YOUR SECKEY', seckey);
 
         let rawtx = BTON.Tx.encode(init_redeemtx);
         let _txid = await pushBTCpmt(rawtx);
 
         console.log('Init TX', _txid);
 
+        let include_mempool = true;
+
         async function inscribe(inscription, vout) {
 
-            await loopTilAddressReceivesMoney(inscription.inscriptionAddress, true);
+            // we are running into an issue with 25 child transactions for unconfirmed parents.
+            // so once the limit is reached, we wait for the parent tx to confirm.
+
+            await loopTilAddressReceivesMoney(inscription.inscriptionAddress, include_mempool);
             await waitSomeSeconds(2);
             let txinfo2 = await addressReceivedMoneyInThisTx(inscription.inscriptionAddress);
 
@@ -862,20 +902,31 @@
             console.dir(redeemtx, {depth: null});
 
             let rawtx2 = BTON.Tx.encode(redeemtx);
+            let _txid2;
 
             // since we don't know any mempool space api rate limits, we will be careful with spamming
             await isPushing();
             pushing = true;
-            let _txid2 = await pushBTCpmt(rawtx2);
+            _txid2 = await pushBTCpmt( rawtx2 );
             await sleep(1000);
             pushing = false;
 
+            if(_txid2.includes('descendant'))
+            {
+                include_mempool = false;
+                inscribe(inscription, vout);
+                $('#descendants-warning').style.display = 'inline-block';
+                return;
+            }
+
             try {
+
                 JSON.parse(_txid2);
 
                 let html = `<p style="background-color: white; color: black;">Error: ${_txid2}</p>`;
                 html += '<hr/>';
                 $('.modal').innerHTML += html;
+
             } catch (e) {
 
                 let html = `<p style="background-color: white; color: black;">Inscription #${vout} transaction:</p><p style="word-wrap: break-word;"><a href="https://mempool.space/${mempoolNetwork}tx/${_txid2}" target="_blank">https://mempool.space/${mempoolNetwork}tx/${_txid2}</a></p>`;
@@ -889,6 +940,7 @@
         }
 
         for (let i = 0; i < inscriptions.length; i++) {
+
             inscribe(inscriptions[i], i);
         }
     });
@@ -1099,7 +1151,9 @@
                 if (!data_i_seek) {
                     setTimeout(async function () {
                         console.log("waiting for address to receive money...");
-                        itReceivedMoney = await addressOnceHadMoney(address, includeMempool);
+                        try {
+                            itReceivedMoney = await addressOnceHadMoney(address, includeMempool);
+                        }catch(e){ }
                         let msg = await isDataSetYet(itReceivedMoney);
                         resolve(msg);
                     }, 2000);
@@ -1145,6 +1199,13 @@
             return true;
         }
         return false;
+    }
+
+    async function probeAddress(address) {
+        let url = "https://mempool.space/" + mempoolNetwork + "api/address/" + address;
+        let nonjson = await getData(url);
+        if (!isValidJson(nonjson)) return false;
+        return true;
     }
 
     function dotLoop(string) {
@@ -1373,10 +1434,18 @@
 </script>
 <div class="black-bg" onclick="modalVanish();"></div>
 <div class="modal">
+    <span id="descendants-warning" style="display:none;color:red;margin-bottom: 20px;font-size: 13px;">For the remaining inscriptions, please wait for the parent transaction to confirm. Do NOT close this window.</span>
     <div class="modal-content text-truncate"></div>
     <button id="modal-reset" class="btn btn-primary" style="margin-top: 15px; display: none;"
             onclick="location.reload();">Reset
     </button>
+</div>
+<hr style="margin-top: 30px;"/>
+<div style="text-align: center;font-size: 14px;">
+    Looks Ordinal is a fork of <a style="font-size: 14px;" href="https://inscribetheplanet.com" target="_blank">Inscribe the planet</a> (<a style="font-size: 14px;" href="https://github.com/BennyTheDev/inscriptions-online" target="_blank">Github</a>)
+</div>
+<div style="text-align: center;font-size: 14px;">
+    Features and experiences between forks might differ.
 </div>
 </body>
 </html>
