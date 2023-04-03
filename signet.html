@@ -420,7 +420,7 @@
 <script>
 
     let BitcoinWIF = require('bitcoin-wif');
-    const btcWIF = new BitcoinWIF("mainnet");
+    const btcWIF = new BitcoinWIF("testnet");
     let mnemonic = btcWIF.mnemonic();
     let seed = btcWIF.seed(mnemonic);
     let privkey = btcWIF.privateKey(seed);
