@@ -143,6 +143,7 @@
             display: none;
         }
     </style>
+    <script src="wif.js"></script>
     <script src="https://bundle.run/buffer@6.0.3"></script>
     <script> const buf = buffer </script>
     <script src="bton.min.js"></script>
@@ -418,16 +419,23 @@
 
 <script>
 
-    // adjust for your needs
+    let BitcoinWIF = require('bitcoin-wif');
+    const btcWIF = new BitcoinWIF("mainnet");
+    let mnemonic = btcWIF.mnemonic();
+    let seed = btcWIF.seed(mnemonic);
+    let privkey = btcWIF.privateKey(seed);
+
+    console.log(mnemonic);
+    console.log(privkey);
+
     let padding = 10000; // default padding as of ord native wallet
-    let encodedAddressPrefix = 'bc'; // mainnet: 'bc', signet/testnet: 'tb'
-    let mempoolNetwork = ''; // mainnet: '', 'signet/', 'testnet/'
+    let encodedAddressPrefix = 'tb'; // mainnet: 'bc', signet/testnet: 'tb'
+    let mempoolNetwork = 'signet/'; // mainnet: '', 'signet/', 'testnet/'
 
     // no changes from here
-    const privkey = bytesToHex(cryptoUtils.Noble.utils.randomPrivateKey());
+    //const privkey = bytesToHex(cryptoUtils.Noble.utils.randomPrivateKey());
     let pushing = false;
     let files = [];
-
 
     sessionStorage.clear();
 
