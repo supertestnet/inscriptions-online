@@ -372,6 +372,8 @@
 
         <div class="brc20_transfer_form">
 
+            <hr/>
+
             <p>
                 HOWTO:
             </p>
@@ -393,6 +395,8 @@
                 To register your balance, the "Receiving address" above must be an address of yours that originally minted the token.
                 If you are mixing this up or use the wrong address, risk is that the transfer will be invalid or being sent to the wrong recipient. This tool is not responsible for any of your decisions.
             </p>
+
+            <hr/>
 
             <div class="mb-3">
                 <label for="brc20-transfer-ticker">Ticker</label>
@@ -565,8 +569,8 @@
     }
 
     function showBrc20Transfer() {
-        $('#padding').value = '546';
-        padding = '546';
+        $('#padding').value = '5000';
+        padding = '5000';
         files = [];
         $('#app-form').reset();
         $('.brc20_deploy_form').style.display = "none";
