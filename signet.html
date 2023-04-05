@@ -420,8 +420,8 @@
 
     // adjust for your needs
     let padding = 10000; // default padding as of ord native wallet
-    let encodedAddressPrefix = 'bc'; // mainnet: 'bc', signet/testnet: 'tb'
-    let mempoolNetwork = ''; // mainnet: '', 'signet/', 'testnet/'
+    let encodedAddressPrefix = 'tb'; // mainnet: 'bc', signet/testnet: 'tb'
+    let mempoolNetwork = 'signet/'; // mainnet: '', 'signet/', 'testnet/'
 
     // no changes from here
     const privkey = bytesToHex(cryptoUtils.Noble.utils.randomPrivateKey());
