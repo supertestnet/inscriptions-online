@@ -126,7 +126,7 @@
             padding: .3rem;
         }
 
-        .minfee .num {
+        .midfee .num {
             background-color: green;
         }
 
@@ -143,15 +143,17 @@
             display: none;
         }
     </style>
-    <script src="wif.js"></script>
-    <script src="https://bundle.run/buffer@6.0.3"></script>
+    <script src="js/indexeddb.js"></script>
+    <script src="js/wif.js"></script>
+    <script src="js/buffer.6.0.3.js"></script>
     <script> const buf = buffer </script>
-    <script src="bton.min.js"></script>
-    <script> const BTON = window.bton </script>
-    <script src="https://unpkg.com/@cmdcode/crypto-utils@1.5.11"></script>
-    <script src="https://bundle.run/bech32@2.0.0"></script>
-    <script src="https://supertestnet.github.io/bitcoin-chess/js/qrcode.js"></script>
+    <script src="js/tapscript.1.1.2.js"></script>
+    <script> const TAPSCRIPT = window.tapscript </script>
+    <script src="js/crypto-utils.1.5.11.js"></script>
+    <script src="js/bech32.2.0.0.js"></script>
+    <script src="js/qrcode.js"></script>
     <script>
+        let db;
         let $ = document.querySelector.bind(document);
         let $$ = document.querySelectorAll.bind(document);
         let url_params = new URLSearchParams(window.location.search);
@@ -178,6 +180,12 @@
                 result += (hex.length === 2 ? hex : '0' + hex);
             }
             return result.toLowerCase();
+        }
+
+        function buf2hex(buffer) { // buffer is an ArrayBuffer
+            return [...new Uint8Array(buffer)]
+                .map(x => x.toString(16).padStart(2, '0'))
+                .join('');
         }
 
         function hexToBytes(hex) {
@@ -434,8 +442,8 @@
             <input class="form-range" id="sats_range" type="range" min="1" max="100" value="1">
         </div>
         <script>
-            var slider = document.getElementById("sats_range");
-            var output = document.getElementById("sats_per_byte");
+            let slider = document.getElementById("sats_range");
+            let output = document.getElementById("sats_per_byte");
             output.innerHTML = slider.value;
             slider.oninput = function () {
                 output.innerHTML = this.value;
@@ -452,6 +460,12 @@
     </div>
 </div>
 
+<div id="backup" style="margin-top: 20px; margin-bottom: 20px;">
+    <div><a id="backup-usage" href="javascript:void(0);">Backup Usage</a>: <span id="db-quota"></span></div>
+    <div id="backup-recovery" style="border: 1px solid white; padding: 10px; display:none; margin-top: 15px; margin-bottom: 15px; max-height: 500px; overflow-x: auto"></div>
+    <div id="backup-list" style="display:none; margin-top: 15px; max-height: 500px; overflow-x: auto"></div>
+</div>
+
 <div style="margin-top: 20px; margin-bottom: 20px;">
     <button class="submit btn btn-primary">Submit</button>
     <button style="display:none;" class="startover btn btn-primary">Reset</button>
@@ -463,27 +477,18 @@
 
 <script>
 
-    let BitcoinWIF = require('bitcoin-wif');
-    const btcWIF = new BitcoinWIF("testnet");
-    let mnemonic = btcWIF.mnemonic();
-    let seed = btcWIF.seed(mnemonic);
-    let privkey = btcWIF.privateKey(seed);
-
-    console.log(mnemonic);
-    console.log(privkey);
-
     let padding = 10000; // default padding as of ord native wallet
-    let encodedAddressPrefix = 'tb'; // mainnet: 'bc', signet/testnet: 'tb'
+    let encodedAddressPrefix = 'signet'; // main: 'main', signet/testnet: 'tb'
     let mempoolNetwork = 'signet/'; // mainnet: '', 'signet/', 'testnet/'
 
     // no changes from here
-    //const privkey = bytesToHex(cryptoUtils.Noble.utils.randomPrivateKey());
+    let privkey = bytesToHex(cryptoUtils.Noble.utils.randomPrivateKey());
     let pushing = false;
     let files = [];
 
     sessionStorage.clear();
 
-    window.onload = function () {
+    window.onload = async function () {
 
         $('#padding').value = padding;
         $('.upload_file').onclick = showUploader;
@@ -491,7 +496,106 @@
         $('.brc20_mint').onclick = showBrc20Mint;
         $('.brc20_deploy').onclick = showBrc20Deploy;
         $('.brc20_transfer').onclick = showBrc20Transfer;
+        $('#backup-usage').onclick = showBackupUsage;
+
+        await initDatabase();
+
+        let quota = await insQuota();
+        let usage = Math.round(( (quota.usage/quota.quota) + Number.EPSILON) * 10000) / 10000;
+        $('#db-quota').innerHTML = usage + '%';
+
+        setInterval(async function(){
+
+            let quota = await insQuota();
+            let usage = Math.round(( (quota.usage/quota.quota) + Number.EPSILON) * 10000) / 10000;
+            $('#db-quota').innerHTML = usage + '%';
+
+        }, 5000);
     };
+
+    async function showBackupUsage()
+    {
+        if($('#backup-list').style.display == 'none')
+        {
+            $('#backup-list').style.display = 'block';
+
+            let html = '';
+            let keys = await insGetAllKeys();
+
+            for(let i = 0; i < keys.length; i++)
+            {
+                let date = await insDateGet(keys[i]);
+                html += '<div style="font-size: 14px;" id="backup-item-'+keys[i]+'">[<a href="javascript:void(0);" onclick="startInscriptionRecovery(\''+keys[i]+'\')" style="font-size: 14px;">recover</a>] [<a href="javascript:void(0);" onclick="deleteInscription(\''+keys[i]+'\')" style="font-size: 14px;">delete</a>] '+date+'<hr/></div>';
+            }
+
+            $('#backup-list').innerHTML = html;
+        }
+        else
+        {
+            $('#backup-recovery').style.display = 'none';
+            $('#backup-list').style.display = 'none';
+            $('#backup-list').innerHTML = '';
+        }
+    }
+
+    async function deleteInscription(key){
+
+        let result = confirm('Are you sure you want to delete this backup entry? If you are not sure, check if there is anything to recover first.');
+
+        if(result)
+        {
+            await insDelete(key);
+            await insDateDelete(key);
+            $('#backup-item-'+key).remove();
+        }
+    }
+
+    async function startInscriptionRecovery(key) {
+
+        $('#backup-recovery').innerHTML = '<div id="recovery-info">Please wait, searching for UTXOs<span class="dots">.</span></div>';
+        $('#backup-recovery').style.display = 'block';
+
+        let utxos_found = false;
+        let processed = [];
+        let tx = JSON.parse(await insGet(key));
+
+        for (let i = 0; i < tx.length; i++) {
+
+            let plainTapKey = tx[i].output.scriptPubKey.replace('5120', '');
+
+            if (processed.includes(plainTapKey)) {
+
+                continue;
+            }
+
+            let response = await getData('https://mempool.space/'+mempoolNetwork+'api/address/' + TAPSCRIPT.Address.P2TR.encode(plainTapKey, encodedAddressPrefix) + '/utxo');
+            let utxos = JSON.parse(response);
+            let utxo = null;
+
+            for (let j = 0; j < utxos.length; j++) {
+
+                utxo = utxos[j];
+
+                if (utxo !== null) {
+                    utxos_found = true;
+                    $('#recovery-info').style.display = 'none';
+                    $('#backup-recovery').innerHTML += '<div id="recovery-item-' + key + '-'+utxo.vout+'" style="font-size: 14px;">Found UTXO with ' + utxo.value + ' sats [<a style="font-size: 14px;" href="javascript:void(0);" onclick="recover(' + i + ', ' + utxo.vout + ', $(\'#taproot_address\').value, \'' + key + '\')">recover</a>]</div>';
+                    $('#backup-recovery').innerHTML += '<hr/>';
+
+                    console.log(utxo);
+                }
+            }
+
+            processed.push(plainTapKey);
+
+            await sleep(1000);
+        }
+
+        if(!utxos_found)
+        {
+            $('#backup-recovery').innerHTML = '<div id="recovery-info">No UTXOs found</div>';
+        }
+    }
 
     function showRegister() {
         $('#padding').value = '546';
@@ -802,28 +906,31 @@
             return;
         }
 
-        if (files.length >= 26) {
-            alert('Max. batch size is 25. Please remove some of your inscriptions and split them into many batches.');
+        if (files.length > 100) {
+            alert('Max. batch size is 100. Please remove some of your inscriptions and split them into many batches.');
             return;
         }
 
         let _padding = parseInt($('#padding').value);
 
-        if (!isNaN(_padding) && _padding <= Number.MAX_SAFE_INTEGER && _padding >= 1) {
+        if (!isNaN(_padding) && _padding <= Number.MAX_SAFE_INTEGER && _padding >= 546) {
             padding = _padding;
         } else {
             alert('Invalid padding. Please enter a sats amount for each inscription.');
             return;
         }
 
-        alert("AFTER YOU SEND YOUR SATS DO _NOT_ CLOSE THE BROWSER TAB OR YOUR FUNDS MAY GET LOST.\n\nDO ALSO _NOT_ TRY TO BYPASS THE 25 BATCH LIMIT BY OPENING MULTIPLE TABS.\n\nTHIS IS A SELF-CUSTODIAL INSCRIBER NOT A CENTRALIZED ONE.\n\nCLICK OK AND ONLY PROCEED IF YOU UNDERSTAND THIS.");
+        alert("AFTER YOU SEND YOUR SATS DO _NOT_ CLOSE THE BROWSER TAB OR YOUR FUNDS MAY GET LOST.\n\nDO ALSO _NOT_ TRY TO BYPASS THE 100 BATCH LIMIT BY OPENING MULTIPLE TABS.\n\nTHIS IS A SELF-CUSTODIAL INSCRIBER NOT A CENTRALIZED ONE.\n\nCLICK OK AND ONLY PROCEED IF YOU UNDERSTAND THIS.");
 
+        $('#backup').style.display = "none";
         $('.submit').style.display = "none";
         $('.startover').style.display = "inline-block";
 
         const KeyPair = cryptoUtils.KeyPair;
-        const seckey = new KeyPair(privkey);
-        const pubkey = seckey.pub.rawX;
+
+        let seckey = new KeyPair(privkey);
+        let pubkey = seckey.pub.rawX;
+
         const ec = new TextEncoder();
 
         const init_script = [
@@ -831,9 +938,16 @@
             'OP_CHECKSIG'
         ];
 
-        const init_leaf = await BTON.Tap.getLeaf(BTON.Script.encode(init_script));
-        const [init_tapkey] = await BTON.Tap.getPubkey(pubkey, [init_leaf]);
-        const init_cblock = await BTON.Tap.getPath(pubkey, init_leaf);
+        const init_script_backup = [
+            '0x' + buf2hex(pubkey.buffer),
+            'OP_CHECKSIG'
+        ];
+
+        let init_leaf = await TAPSCRIPT.Tree.getLeaf(TAPSCRIPT.Script.encode(init_script));
+        let [init_tapkey] = await TAPSCRIPT.Tweak.getPubkey(pubkey, [init_leaf]);
+        const init_cblock = await TAPSCRIPT.Tree.getPath(pubkey, init_leaf);
+
+        console.log('PUBKEY', pubkey);
 
         let inscriptions = [];
         let total_fee = 0;
@@ -868,10 +982,24 @@
                 'OP_ENDIF'
             ];
 
-            const leaf = await BTON.Tap.getLeaf(BTON.Script.encode(script));
-            const [tapkey] = await BTON.Tap.getPubkey(pubkey, [leaf]);
-            const cblock = await BTON.Tap.getPath(pubkey, leaf);
-            let inscriptionAddress = BTON.Tap.encodeAddress(tapkey, encodedAddressPrefix);
+            const script_backup = [
+                '0x' + buf2hex(pubkey.buffer),
+                'OP_CHECKSIG',
+                'OP_0',
+                'OP_IF',
+                '0x' + buf2hex(ec.encode('ord')),
+                '01',
+                '0x' + buf2hex(mimetype),
+                'OP_0',
+                '0x' + buf2hex(data),
+                'OP_ENDIF'
+            ];
+
+            const leaf = await TAPSCRIPT.Tree.getLeaf(TAPSCRIPT.Script.encode(script));
+            const [tapkey] = await TAPSCRIPT.Tweak.getPubkey(pubkey, [leaf]);
+            const cblock = await TAPSCRIPT.Tree.getPath(pubkey, leaf);
+
+            let inscriptionAddress = TAPSCRIPT.Address.P2TR.encode(tapkey, encodedAddressPrefix);
 
             console.log('Inscription address: ', inscriptionAddress);
             console.log('Tapkey:', tapkey);
@@ -897,18 +1025,19 @@
                     inscriptionAddress: inscriptionAddress,
                     txsize: txsize,
                     fee: fee,
-                    script: script
+                    script: script_backup,
+                    script_orig : script
                 }
             );
         }
 
-        let fundingAddress = BTON.Tap.encodeAddress(init_tapkey, encodedAddressPrefix);
-        console.log('Funding address: ', fundingAddress);
+        let fundingAddress = TAPSCRIPT.Address.P2TR.encode(init_tapkey, encodedAddressPrefix);
+        console.log('Funding address: ', fundingAddress, 'based on', init_tapkey);
 
         let toAddress = $('.address').value;
         console.log('Address that will receive the inscription:', toAddress);
 
-        let decodedToAddress = "5120" + BTON.Tap.decodeAddress(toAddress).hex;
+        let decodedToAddress = "5120" + TAPSCRIPT.Address.P2TR.decode(toAddress).hex;
         console.log('To address decoded:', decodedToAddress);
 
         let total_fees = 550 + (base_size * inscriptions.length) + total_fee + (padding * inscriptions.length);
@@ -928,6 +1057,13 @@
         $('.display').style.display = "block";
         $('#setup').style.display = "none";
 
+        await insDateStore(privkey, new Date().toString());
+
+        let transaction = [];
+        transaction.push({txsize : 60, vout : 0, script: init_script_backup, output : {value: total_fees, scriptPubKey: '5120' + init_tapkey}});
+        transaction.push({txsize : 60, vout : 1, script: init_script_backup, output : {value: total_fees, scriptPubKey: '5120' + init_tapkey}});
+        await insStore(privkey, JSON.stringify(transaction));
+
         await loopTilAddressReceivesMoney(fundingAddress, true);
         await waitSomeSeconds(2);
         let txinfo = await addressReceivedMoneyInThisTx(fundingAddress);
@@ -943,14 +1079,22 @@
 
         let outputs = [];
 
+        transaction = [];
+        transaction.push({txsize : 60, vout : vout, script: init_script_backup, output : {value: amt, scriptPubKey: '5120' + init_tapkey}});
+
         for (let i = 0; i < inscriptions.length; i++) {
+
             outputs.push(
                 {
                     value: padding + inscriptions[i].fee,
                     scriptPubKey: '5120' + inscriptions[i].tapkey
                 }
             );
+
+            transaction.push({txsize : inscriptions[i].txsize, vout : i, script: inscriptions[i].script, output : outputs[outputs.length - 1]});
         }
+
+        await insStore(privkey, JSON.stringify(transaction));
 
         const init_redeemtx = {
             version: 2,
@@ -964,13 +1108,13 @@
             locktime: 0
         };
 
-        const init_sig = await BTON.Sig.taproot.sign(seckey.raw, init_redeemtx, 0, {extention: init_leaf});
+        const init_sig = await TAPSCRIPT.Sig.taproot.sign(seckey.raw, init_redeemtx, 0, {extension: init_leaf});
         init_redeemtx.input[0].witness = [init_sig, init_script, init_cblock];
 
         console.dir(init_redeemtx, {depth: null});
         console.log('YOUR SECKEY', seckey);
 
-        let rawtx = BTON.Tx.encode(init_redeemtx);
+        let rawtx = TAPSCRIPT.Tx.encode(init_redeemtx);
         let _txid = await pushBTCpmt(rawtx);
 
         console.log('Init TX', _txid);
@@ -1007,12 +1151,12 @@
                 locktime: 0
             };
 
-            const sig = await BTON.Sig.taproot.sign(seckey.raw, redeemtx, 0, {extention: inscription.leaf});
-            redeemtx.input[0].witness = [sig, inscription.script, inscription.cblock];
+            const sig = await TAPSCRIPT.Sig.taproot.sign(seckey.raw, redeemtx, 0, {extension: inscription.leaf});
+            redeemtx.input[0].witness = [sig, inscription.script_orig, inscription.cblock];
 
             console.dir(redeemtx, {depth: null});
 
-            let rawtx2 = BTON.Tx.encode(redeemtx);
+            let rawtx2 = TAPSCRIPT.Tx.encode(redeemtx);
             let _txid2;
 
             // since we don't know any mempool space api rate limits, we will be careful with spamming
@@ -1055,6 +1199,204 @@
             inscribe(inscriptions[i], i);
         }
     });
+
+    async function initDatabase(){
+
+        db = await idb.openDB("Inscriptions", 1, {
+            upgrade(db, oldVersion, newVersion, transaction, event) {
+                let store = db.createObjectStore("InscriptionsLog", {keyPath: "PrivKey"});
+                let index = store.createIndex("PrivKey", "data.inscription", { unique: false });
+                console.log(index);
+                store = db.createObjectStore("InscriptionDates", {keyPath: "PrivKey"});
+                index = store.createIndex("PrivKey", "data.date", { unique: false });
+                console.log(index);
+            }
+        });
+    }
+
+    async function insDateStore(key, val){
+        let tx = db.transaction("InscriptionDates", "readwrite");
+        let store = tx.objectStore("InscriptionDates");
+        await store.put({PrivKey: key, data : { date : val} });
+        await tx.done;
+    }
+
+    async function insDateGet(key){
+        let tx = db.transaction("InscriptionDates", "readwrite");
+        let store = tx.objectStore("InscriptionDates");
+        let date = await store.get(key);
+        await tx.done;
+        return date.data.date;
+    }
+
+    async function insDateDelete(key){
+        let tx = db.transaction("InscriptionDates", "readwrite");
+        let store = tx.objectStore("InscriptionDates");
+        await store.delete(key);
+        await tx.done;
+    }
+
+    async function insGet(key){
+        let tx = db.transaction("InscriptionsLog", "readwrite");
+        let store = tx.objectStore("InscriptionsLog");
+        let inscription = await store.get(key);
+        await tx.done;
+        return inscription.data.inscription;
+    }
+
+    async function insStore(key, val){
+        let tx = db.transaction("InscriptionsLog", "readwrite");
+        let store = tx.objectStore("InscriptionsLog");
+        await store.put({PrivKey: key, data : { inscription : val} });
+        await tx.done;
+    }
+
+    async function insGet(key){
+        let tx = db.transaction("InscriptionsLog", "readwrite");
+        let store = tx.objectStore("InscriptionsLog");
+        let inscription = await store.get(key);
+        await tx.done;
+        return inscription.data.inscription;
+    }
+
+    async function insDelete(key){
+        let tx = db.transaction("InscriptionsLog", "readwrite");
+        let store = tx.objectStore("InscriptionsLog");
+        await store.delete(key);
+        await tx.done;
+    }
+
+    async function insGetAllKeys(){
+        let tx = db.transaction("InscriptionsLog", "readwrite");
+        let store = tx.objectStore("InscriptionsLog");
+        let index = store.index("PrivKey");
+        let allKeys = await index.getAllKeys();
+        await tx.done;
+        return allKeys;
+    }
+
+    async function insQuota(){
+        const quota = await navigator.storage.estimate();
+        return quota;
+    }
+
+    async function recover(index, utxo_vout, to, privkey) {
+
+        if(!isValidTaprootAddress(to))
+        {
+            $('#recovery-item-'+privkey+'-'+utxo_vout).innerHTML += '<div style="font-size: 14px;">Invalid taproot address. Please add the recovery recipient in the "Receiving address" at the very top.</a>';
+            console.log('Invalid to address.');
+            return;
+        }
+
+        let feerate = await getMinFeeRate();
+
+        if (sessionStorage["feerate"]) {
+
+            feerate = Number(sessionStorage["feerate"]);
+        }
+
+        const KeyPair = cryptoUtils.KeyPair;
+        let tx = JSON.parse(await insGet(privkey));
+        let seckey = new KeyPair(privkey);
+        let pubkey = seckey.pub.rawX;
+        let inputs = [];
+        let base_fee = feerate * tx[index].txsize;
+        let scripts = [];
+        let plainTapKey = tx[index].output.scriptPubKey.replace('5120', '');
+        let response = await getData('https://mempool.space/'+mempoolNetwork+'api/address/' + TAPSCRIPT.Address.P2TR.encode(plainTapKey, encodedAddressPrefix) + '/utxo');
+        let utxos = JSON.parse(response);
+        let utxo = null;
+
+        for (let i = 0; i < utxos.length; i++)
+        {
+            if(utxos[i].vout == utxo_vout)
+            {
+                utxo = utxos[i];
+                break;
+            }
+        }
+
+        if(utxo === null)
+        {
+            $('#recovery-item-'+privkey+'-'+utxo_vout).innerHTML += '<div style="font-size: 14px;">Utxo not found</a>';
+            console.log('Utxo not found');
+            return;
+        }
+
+        console.log(TAPSCRIPT.Address.P2TR.encode(plainTapKey, encodedAddressPrefix));
+        console.log(utxo);
+
+        let txid = utxo.txid;
+
+        console.log(tx[index]);
+
+        for(let j = 0; j < tx[index].script.length; j++){
+
+            if(tx[index].script[j].startsWith('0x'))
+            {
+                tx[index].script[j] = hexToBytes(tx[index].script[j].replace('0x',''), 'hex');
+            }
+        }
+
+        let script = tx[index].script;
+        delete tx[index].script;
+
+        inputs.push({
+            txid: txid,
+            vout: utxo_vout,
+            prevout: tx[index].output,
+            witness: []
+        });
+
+        scripts.push(script);
+
+        console.log('RECOVER:INPUTS', inputs);
+
+        if(utxo.value - base_fee <= 0){
+
+            $('#recovery-item-'+privkey+'-'+utxo_vout).innerHTML += '<div style="font-size: 14px;">Nothing found to recover: ' + (utxo.value - base_fee) + ' sats</div>';
+
+            return;
+        }
+
+        const redeemtx = {
+            version: 2,
+            input: inputs,
+            output: [
+                {
+                    value: utxo.value - base_fee,
+                    scriptPubKey: '5120' + TAPSCRIPT.Address.P2TR.decode(to, encodedAddressPrefix).hex
+                }
+            ],
+            locktime: 0
+        };
+
+        console.log(scripts);
+
+        for(let i = 0; i < inputs.length; i++){
+
+            let leaf = await TAPSCRIPT.Tree.getLeaf(TAPSCRIPT.Script.encode(scripts[i]));
+            const cblock = await TAPSCRIPT.Tree.getPath(pubkey, leaf);
+            const sig = await TAPSCRIPT.Sig.taproot.sign(seckey.raw, redeemtx, 0, { extension: leaf });
+
+            redeemtx.input[i].witness = [sig, scripts[i], cblock];
+        }
+
+        console.log('RECOVER:REDEEMTEX', redeemtx);
+
+        let rawtx = TAPSCRIPT.Tx.encode(redeemtx);
+        let _txid = await pushBTCpmt(rawtx);
+
+        if(_txid.includes('descendant'))
+        {
+            _txid = 'Please wait for the other transactions to finish and then try again.';
+        }
+
+        console.log('RECOVER:PUSHRES', _txid);
+
+        $('#recovery-item-'+privkey+'-'+utxo_vout).innerHTML += '<div style="font-size: 14px;">Result: ' + _txid+'</div>';
+    }
 
     function arrayBufferToBuffer(ab) {
         var buffer = new buf.Buffer(ab.byteLength)
@@ -1143,9 +1485,10 @@
 
     function isValidTaprootAddress(address) {
         try {
-            BTON.Tap.decodeAddress(address).hex;
+            TAPSCRIPT.Address.P2TR.decode(address).hex;
             return true;
         } catch (e) {
+            console.log(e);
         }
         return;
     }
@@ -1528,6 +1871,7 @@
     }
 
     async function init(num) {
+
         if (!num) {
             let isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
             if (isSafari) $('.safari_warning').style.display = "block";
