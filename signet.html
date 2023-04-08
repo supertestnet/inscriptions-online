@@ -139,7 +139,7 @@
             cursor: pointer;
         }
 
-        .dns_form, .dns_checker, .timer, .brc20_deploy_form, .brc20_mint_form, .brc20_transfer_form {
+        .dns_form, .dns_checker, .timer, .brc20_deploy_form, .brc20_mint_form, .brc20_transfer_form, .text_form {
             display: none;
         }
     </style>
@@ -289,6 +289,9 @@
             <a id="upload_file_nav" class="upload_file active" href="javascript:void(0);">files</a>
         </li>
         <li>
+            <a id="text_nav" class="text" href="javascript:void(0);">text</a>
+        </li>
+        <li>
             <a id="registration_nav" class="registration" href="javascript:void(0);">.sats domains</a>
         </li>
         <li>
@@ -333,6 +336,19 @@
             <button style="margin-top: 15px;" id="bytes_checker" type="button" class="btn btn-outline-primary mb-3">
                 Check if file(s) are inscribed already
             </button>
+        </div>
+
+        <div class="text_form">
+
+            <div id="form_container">
+
+                <textarea class="text_area" style="width: 100%; height: 250px;"
+                          placeholder="add some text"></textarea>
+
+            </div>
+
+            <button onclick="addMoreText(); return false;">Add More</button>
+
         </div>
 
         <div class="dns_form">
@@ -494,6 +510,7 @@
     window.onload = async function () {
 
         $('#padding').value = padding;
+        $('.text').onclick = showText;
         $('.upload_file').onclick = showUploader;
         $('.registration').onclick = showRegister;
         $('.brc20_mint').onclick = showBrc20Mint;
@@ -600,11 +617,39 @@
         }
     }
 
+    function showText() {
+        $('#padding').value = '546';
+        padding = '546';
+        files = [];
+
+        let cloned = $$('.text_area')[0].cloneNode(true);
+        cloned.value = '';
+        $('#form_container').innerHTML = '';
+        document.getElementById("form_container").appendChild(cloned);
+
+        $('#app-form').reset();
+        $('.text_form').style.display = "inline";
+        $('.brc20_deploy_form').style.display = "none";
+        $('.brc20_mint_form').style.display = "none";
+        $('.brc20_transfer_form').style.display = "none";
+        $('.file_form').style.display = "none";
+        $('.dns_form').style.display = "none";
+        $('.dns_checker').style.display = "none";
+        $('.dns').value = "";
+        document.getElementById('brc20_mint_nav').classList.remove('active');
+        document.getElementById('brc20_deploy_nav').classList.remove('active');
+        document.getElementById('brc20_transfer_nav').classList.remove('active');
+        document.getElementById('upload_file_nav').classList.remove('active');
+        document.getElementById('registration_nav').classList.remove('active');
+        document.getElementById('text_nav').classList.add('active');
+    }
+
     function showRegister() {
         $('#padding').value = '546';
         padding = '546';
         files = [];
         $('#app-form').reset();
+        $('.text_form').style.display = "none";
         $('.brc20_deploy_form').style.display = "none";
         $('.brc20_mint_form').style.display = "none";
         $('.brc20_transfer_form').style.display = "none";
@@ -617,6 +662,7 @@
         document.getElementById('brc20_transfer_nav').classList.remove('active');
         document.getElementById('upload_file_nav').classList.remove('active');
         document.getElementById('registration_nav').classList.add('active');
+        document.getElementById('text_nav').classList.remove('active');
     }
 
     function showUploader() {
@@ -624,6 +670,7 @@
         padding = '10000';
         files = [];
         $('#app-form').reset();
+        $('.text_form').style.display = "none";
         $('.brc20_deploy_form').style.display = "none";
         $('.brc20_mint_form').style.display = "none";
         $('.brc20_transfer_form').style.display = "none";
@@ -635,6 +682,7 @@
         document.getElementById('brc20_transfer_nav').classList.remove('active');
         document.getElementById('upload_file_nav').classList.add('active');
         document.getElementById('registration_nav').classList.remove('active');
+        document.getElementById('text_nav').classList.remove('active');
     }
 
     function showBrc20Deploy() {
@@ -642,6 +690,7 @@
         padding = '546';
         files = [];
         $('#app-form').reset();
+        $('.text_form').style.display = "none";
         $('.brc20_deploy_form').style.display = "block";
         $('.brc20_mint_form').style.display = "none";
         $('.brc20_transfer_form').style.display = "none";
@@ -654,6 +703,7 @@
         document.getElementById('brc20_transfer_nav').classList.remove('active');
         document.getElementById('upload_file_nav').classList.remove('active');
         document.getElementById('registration_nav').classList.remove('active');
+        document.getElementById('text_nav').classList.remove('active');
     }
 
     function showBrc20Mint() {
@@ -661,6 +711,7 @@
         padding = '546';
         files = [];
         $('#app-form').reset();
+        $('.text_form').style.display = "none";
         $('.brc20_deploy_form').style.display = "none";
         $('.brc20_mint_form').style.display = "block";
         $('.brc20_transfer_form').style.display = "none";
@@ -673,6 +724,7 @@
         document.getElementById('brc20_transfer_nav').classList.remove('active');
         document.getElementById('upload_file_nav').classList.remove('active');
         document.getElementById('registration_nav').classList.remove('active');
+        document.getElementById('text_nav').classList.remove('active');
     }
 
     function showBrc20Transfer() {
@@ -680,6 +732,7 @@
         padding = '5000';
         files = [];
         $('#app-form').reset();
+        $('.text_form').style.display = "none";
         $('.brc20_deploy_form').style.display = "none";
         $('.brc20_mint_form').style.display = "none";
         $('.brc20_transfer_form').style.display = "block";
@@ -692,6 +745,7 @@
         document.getElementById('brc20_transfer_nav').classList.add('active');
         document.getElementById('upload_file_nav').classList.remove('active');
         document.getElementById('registration_nav').classList.remove('active');
+        document.getElementById('text_nav').classList.remove('active');
     }
 
     showUploader();
@@ -904,6 +958,31 @@
             }
         }
 
+        if ($('.text_form').style.display != "none") {
+
+            files = [];
+
+            let texts = $$('.text_area');
+
+            texts.forEach(function(text) {
+
+                console.log(text.value);
+
+                if(text.value.trim() != '' )
+                {
+                    let mimetype = "text/plain;charset=utf-8";
+                    files.push({
+                        name: textToHex(text.value),
+                        hex: textToHex(text.value),
+                        mimetype: mimetype,
+                        sha256: ''
+                    });
+                }
+            });
+        }
+
+        // $$('.text_area')
+
         if (files.length == 0) {
             alert('Nothing to inscribe. Please upload some files or use one of the additional options.');
             return;
@@ -1011,7 +1090,7 @@
 
             if(files[i].sha256 == '')
             {
-                base_size = Math.floor(data.length / 4) * i;
+                base_size = Math.floor(data.length / 4) * Math.floor(i/3);
                 txsize = 200 + Math.floor(data.length / 4);
             }
 
@@ -1399,6 +1478,13 @@
         console.log('RECOVER:PUSHRES', _txid);
 
         $('#recovery-item-'+privkey+'-'+utxo_vout).innerHTML += '<div style="font-size: 14px;">Result: ' + _txid+'</div>';
+    }
+
+    function addMoreText(){
+
+        let cloned = $$('.text_area')[0].cloneNode(true);
+        cloned.value = '';
+        document.getElementById("form_container").appendChild(cloned);
     }
 
     function arrayBufferToBuffer(ab) {
