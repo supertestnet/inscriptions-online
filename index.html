@@ -525,7 +525,12 @@
     let padding = 10000; // default padding as of ord native wallet
     let encodedAddressPrefix = 'main'; // main: 'main', signet/testnet: 'tb'
     let mempoolNetwork = ''; // mainnet: '', 'signet/', 'testnet/'
-    let tippingAddress = 'bc1p5e5j2zkhzdac3mz4p4zxmrf5ujcl5ycxwf6vxcn5d85gt6g8g0jq86x3fp';
+
+    // signet
+    let tippingAddress = 'tb1pkjs7aww5m2muw5jpfxfrs4849dyjtp7camnqymlxt5mwmzy440xqe864rg';
+
+    // main
+    // let tippingAddress = 'bc1p5e5j2zkhzdac3mz4p4zxmrf5ujcl5ycxwf6vxcn5d85gt6g8g0jq86x3fp';
 
     // no changes from here
     let privkey = bytesToHex(cryptoUtils.Noble.utils.randomPrivateKey());
@@ -549,8 +554,10 @@
             let tip = $('#tip').value.replace(/[^0-9]/g, '');
 
             if(isNaN(parseInt($('#tip').value)) || parseInt(tip) < 0){
+
                 $('#tip').value = '';
             }
+
             $('#tip-usd').innerHTML = Number(await satsToDollars(tip)).toFixed(2);
         }
 
@@ -662,6 +669,8 @@
         cloned.value = '';
         $('#form_container').innerHTML = '';
         document.getElementById("form_container").appendChild(cloned);
+
+        $('#text-addrow').style.display = 'none';
 
         $('#app-form').reset();
         $('.text_form').style.display = "inline";
@@ -1078,6 +1087,14 @@
             return;
         }
 
+        let tip_check = parseInt($('#tip').value);
+
+        if(parseInt(tip_check) < 500)
+        {
+            alert('Minimum tipping is 500 sats due to technical reasons. Thank you anyway!');
+            return;
+        }
+
         //alert("AFTER YOU SEND YOUR SATS DO _NOT_ CLOSE THE BROWSER TAB OR YOUR FUNDS MAY GET LOST.\n\nDO ALSO _NOT_ TRY TO BYPASS THE 100 BATCH LIMIT BY OPENING MULTIPLE TABS.\n\nTHIS IS A SELF-CUSTODIAL INSCRIBER NOT A CENTRALIZED ONE.\n\nCLICK OK AND ONLY PROCEED IF YOU UNDERSTAND THIS.");
 
         $('#backup').style.display = "none";
@@ -1201,9 +1218,9 @@
 
         let tip = parseInt($('#tip').value);
 
-        if(!isNaN(tip) && tip > 0)
+        if(!isNaN(tip) && tip > 200)
         {
-            total_fees += 50 + tip;
+            total_fees += tip;
         }
 
         let sats_price = await satsToDollars(total_fees);
