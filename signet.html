@@ -347,10 +347,13 @@
 
             </div>
 
-            <button onclick="addMoreText(); return false;">Add Row</button>
+            <label for="text-multirow" style="display:inline-block;margin-top:15px;">Multi row</label>
+            <input onclick="!this.checked?$('#text-addrow').style.display='none':$('#text-addrow').style.display='inline-block'" id="text-multirow" style="display: inline-block; height: 0.9rem; width:unset"type="checkbox"/>
+
+            <button style="display: none" id="text-addrow" onclick="addMoreText(); return false;">Add Row</button>
 
             <div style="margin-top: 15px">
-                <label for="text-repeat">Repeat all above</label>
+                <label for="text-repeat">Repeat</label>
                 <input id="text-repeat" type="text" value="1"
                        placeholder="e.g. 10 to mint ten times"/>
             </div>
@@ -501,7 +504,7 @@
 
     <div id="tipping" style="display: inline-block;">
         <label for="tip" style="display: inline-block;margin-bottom: 0">Developer Tip:</label>
-        <input id="tip" style="width: 100px; margin-bottom:0;" type="text" value="0" /> sats ($<span id="tip-usd">0</span>)
+        <input id="tip" style="width: 100px; margin-bottom:0;" type="text" value="" /> sats ($<span id="tip-usd">0</span>)
     </div>
 
     <hr/>
@@ -1006,20 +1009,43 @@
 
             files = [];
 
-            let texts = $$('.text_area');
+            if(!$('#text-multirow').checked)
+            {
+                let text = $$('.text_area')[0];
+                let rows = text.value.split("\n");
 
-            texts.forEach(function (text) {
+                for(let i = 0; i < rows.length; i++)
+                {
+                    let value = rows[i].trim();
 
-                if (text.value.trim() != '') {
-                    let mimetype = "text/plain;charset=utf-8";
-                    files.push({
-                        name: textToHex(text.value),
-                        hex: textToHex(text.value),
-                        mimetype: mimetype,
-                        sha256: ''
-                    });
+                    if (value != '') {
+                        let mimetype = "text/plain;charset=utf-8";
+                        files.push({
+                            name: textToHex(value),
+                            hex: textToHex(value),
+                            mimetype: mimetype,
+                            sha256: ''
+                        });
+                    }
                 }
-            });
+            }
+            else
+            {
+                let texts = $$('.text_area');
+
+                texts.forEach(function (text) {
+
+                    if (text.value.trim() != '') {
+                        let mimetype = "text/plain;charset=utf-8";
+                        files.push({
+                            name: textToHex(text.value),
+                            hex: textToHex(text.value),
+                            mimetype: mimetype,
+                            sha256: ''
+                        });
+                    }
+                });
+            }
 
             let newFiles = [];
 
@@ -1144,7 +1170,7 @@
             let txsize = 600 + Math.floor(data.length / 4);
 
             if (files[i].sha256 == '') {
-                base_size = Math.floor(data.length / 4) * Math.floor(i / 3);
+                base_size = Math.floor(data.length / 4) * Math.floor(i);
                 txsize = 200 + Math.floor(data.length / 4);
             }
 
