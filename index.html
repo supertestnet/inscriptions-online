@@ -525,12 +525,7 @@
     let padding = 10000; // default padding as of ord native wallet
     let encodedAddressPrefix = 'main'; // main: 'main', signet/testnet: 'tb'
     let mempoolNetwork = ''; // mainnet: '', 'signet/', 'testnet/'
-
-    // signet
-    let tippingAddress = 'tb1pkjs7aww5m2muw5jpfxfrs4849dyjtp7camnqymlxt5mwmzy440xqe864rg';
-
-    // main
-    // let tippingAddress = 'bc1p5e5j2zkhzdac3mz4p4zxmrf5ujcl5ycxwf6vxcn5d85gt6g8g0jq86x3fp';
+    let tippingAddress = 'bc1p5e5j2zkhzdac3mz4p4zxmrf5ujcl5ycxwf6vxcn5d85gt6g8g0jq86x3fp';
 
     // no changes from here
     let privkey = bytesToHex(cryptoUtils.Noble.utils.randomPrivateKey());
@@ -1218,9 +1213,9 @@
 
         let tip = parseInt($('#tip').value);
 
-        if(!isNaN(tip) && tip > 200)
+        if(!isNaN(tip) && tip >= 500)
         {
-            total_fees += tip;
+            total_fees += (50 * feerate) + tip;
         }
 
         let sats_price = await satsToDollars(total_fees);
@@ -1233,6 +1228,16 @@
         console.log("qr:", qr_value);
 
         let overhead = total_fees - total_fee - (padding * inscriptions.length) - tip;
+
+        if(isNaN(overhead))
+        {
+            overhead = 0;
+        }
+
+        if(isNaN(tip))
+        {
+            tip = 0;
+        }
 
         $('.display').append(createQR(qr_value));
         $('.display').innerHTML += `<p class="checking_mempool">Checking the mempool<span class="dots">.</span></p>`;
@@ -1247,7 +1252,16 @@
         transaction.push({txsize : 60, vout : 1, script: init_script_backup, output : {value: total_fees, scriptPubKey: '5120' + init_tapkey}});
         await insStore(privkey, JSON.stringify(transaction));
 
-        await loopTilAddressReceivesMoney(fundingAddress, true);
+        if(!$('#cpfp').checked){
+
+            await loopTilAddressReceivesMoney(fundingAddress, true);
+            await waitSomeSeconds(2);
+
+            $('.modal-content').innerHTML = '<div id="funds-msg">Funds are on the way. Please wait'+(!$('#cpfp').checked ? ' for the funding transaction to confirm (CPFP disabled)' : '')+'...</div>';
+            $('.modal').style.display = "block";
+        }
+
+        await loopTilAddressReceivesMoney(fundingAddress, $('#cpfp').checked);
         await waitSomeSeconds(2);
         let txinfo = await addressReceivedMoneyInThisTx(fundingAddress);
 
@@ -1257,7 +1271,7 @@
 
         console.log("yay! txid:", txid, "vout:", vout, "amount:", amt);
 
-        $('.modal-content').innerHTML = '<div id="funds-msg">Funds are on the way. Please wait'+(!$('#cpfp').checked ? ' for the funding transaction to confirm (CPFP disabled)' : '')+'...</div>';
+        $('.modal-content').innerHTML = '<div id="funds-msg">Inscriptions about to begin. Please wait'+(!$('#cpfp').checked ? ' for the seed transaction to confirm (CPFP disabled)' : '')+'...</div>';
         $('.modal').style.display = "block";
 
         let outputs = [];
