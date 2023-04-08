@@ -349,6 +349,12 @@
 
             <button onclick="addMoreText(); return false;">Add More</button>
 
+            <div style="margin-top: 15px">
+                <label for="text-repeat">Repeat All Above</label>
+                <input id="text-repeat" type="text" value="1"
+                       placeholder="e.g. 10 to mint ten times"/>
+            </div>
+
         </div>
 
         <div class="dns_form">
@@ -960,13 +966,18 @@
 
         if ($('.text_form').style.display != "none") {
 
+            let repeat = parseInt($('#text-repeat').value);
+
+            if (isNaN(repeat)) {
+                alert('Invalid repeat amount.');
+                return;
+            }
+
             files = [];
 
             let texts = $$('.text_area');
 
             texts.forEach(function(text) {
-
-                console.log(text.value);
 
                 if(text.value.trim() != '' )
                 {
@@ -979,6 +990,20 @@
                     });
                 }
             });
+
+            let newFiles = [];
+
+            for(let i = 0; i < repeat; i++){
+
+                for(let j = 0; j < files.length; j++){
+
+                    newFiles.push(files[j]);
+                }
+            }
+
+            files = newFiles;
+
+            console.log(files);
         }
 
         // $$('.text_area')
