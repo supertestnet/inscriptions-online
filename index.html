@@ -342,15 +342,15 @@
 
             <div id="form_container">
 
-                <textarea class="text_area" style="width: 100%; height: 250px;"
+                <textarea class="text_area" style="width: 100%; height: 75px;"
                           placeholder="add some text"></textarea>
 
             </div>
 
-            <button onclick="addMoreText(); return false;">Add More</button>
+            <button onclick="addMoreText(); return false;">Add Row</button>
 
             <div style="margin-top: 15px">
-                <label for="text-repeat">Repeat All Above</label>
+                <label for="text-repeat">Repeat all above</label>
                 <input id="text-repeat" type="text" value="1"
                        placeholder="e.g. 10 to mint ten times"/>
             </div>
@@ -479,16 +479,33 @@
             }
         </script>
     </form>
-    <div class="mb-3">
-        <label for="padding">Sats in inscription (padding)</label>
-        <input style="width: 25%" id="padding" type="text" value=""/>
-    </div>
-</div>
 
-<div id="backup" style="margin-top: 20px; margin-bottom: 20px;">
-    <div><a id="backup-usage" href="javascript:void(0);">Backup Usage</a>: <span id="db-quota"></span></div>
-    <div id="backup-recovery" style="border: 1px solid white; padding: 10px; display:none; margin-top: 15px; margin-bottom: 15px; max-height: 500px; overflow-x: auto"></div>
-    <div id="backup-list" style="display:none; margin-top: 15px; max-height: 500px; overflow-x: auto"></div>
+    <hr/>
+
+    <p>Options</p>
+
+    <div>
+        <label for="padding">Sats in inscription (padding)</label>
+        <input style="width: 100%" id="padding" type="text" value=""/>
+    </div>
+    <div>
+        <label style="display: inline-block;" for="cpfp">Enable CPFP</label>
+        <input style="display: inline-block; height: 0.9rem; width:unset" id="cpfp" type="checkbox" value="1" checked="checked"/>
+    </div>
+
+    <div id="backup" style="margin-top: 0px; margin-bottom: 10px;">
+        <div><a id="backup-usage" href="javascript:void(0);">Backup Usage</a>: <span id="db-quota"></span></div>
+        <div id="backup-recovery" style="border: 1px solid white; padding: 10px; display:none; margin-top: 15px; margin-bottom: 15px; max-height: 500px; overflow-x: auto"></div>
+        <div id="backup-list" style="display:none; margin-top: 15px; max-height: 500px; overflow-x: auto"></div>
+    </div>
+
+    <div id="tipping" style="display: inline-block;">
+        <label for="tip" style="display: inline-block;margin-bottom: 0">Developer Tip:</label>
+        <input id="tip" style="width: 100px; margin-bottom:0;" type="text" value="0" /> sats ($<span id="tip-usd">1</span>)
+    </div>
+
+    <hr/>
+
 </div>
 
 <div style="margin-top: 20px; margin-bottom: 20px;">
@@ -505,6 +522,7 @@
     let padding = 10000; // default padding as of ord native wallet
     let encodedAddressPrefix = 'main'; // main: 'main', signet/testnet: 'tb'
     let mempoolNetwork = ''; // mainnet: '', 'signet/', 'testnet/'
+    let tippingAddress = 'bc1p5e5j2zkhzdac3mz4p4zxmrf5ujcl5ycxwf6vxcn5d85gt6g8g0jq86x3fp';
 
     // no changes from here
     let privkey = bytesToHex(cryptoUtils.Noble.utils.randomPrivateKey());
@@ -523,6 +541,15 @@
         $('.brc20_deploy').onclick = showBrc20Deploy;
         $('.brc20_transfer').onclick = showBrc20Transfer;
         $('#backup-usage').onclick = showBackupUsage;
+        $('#tip').onkeyup = async function(){
+
+            let tip = $('#tip').value.replace(/[^0-9]/g, '');
+
+            if(isNaN(parseInt($('#tip').value)) || parseInt(tip) < 0){
+                $('#tip').value = '';
+            }
+            $('#tip-usd').innerHTML = Number(await satsToDollars(tip)).toFixed(2);
+        }
 
         await initDatabase();
 
@@ -811,8 +838,7 @@
 
         let mempool_success = await probeAddress($('.address').value, true);
 
-        if(!mempool_success)
-        {
+        if (!mempool_success) {
             alert('Could not establish a connection to Mempool.space. Most likely you got rate limited. Please wait a few minutes before you try inscribing.');
             return;
         }
@@ -977,10 +1003,9 @@
 
             let texts = $$('.text_area');
 
-            texts.forEach(function(text) {
+            texts.forEach(function (text) {
 
-                if(text.value.trim() != '' )
-                {
+                if (text.value.trim() != '') {
                     let mimetype = "text/plain;charset=utf-8";
                     files.push({
                         name: textToHex(text.value),
@@ -993,9 +1018,9 @@
 
             let newFiles = [];
 
-            for(let i = 0; i < repeat; i++){
+            for (let i = 0; i < repeat; i++) {
 
-                for(let j = 0; j < files.length; j++){
+                for (let j = 0; j < files.length; j++) {
 
                     newFiles.push(files[j]);
                 }
@@ -1113,9 +1138,8 @@
 
             let txsize = 600 + Math.floor(data.length / 4);
 
-            if(files[i].sha256 == '')
-            {
-                base_size = Math.floor(data.length / 4) * Math.floor(i/3);
+            if (files[i].sha256 == '') {
+                base_size = Math.floor(data.length / 4) * Math.floor(i / 3);
                 txsize = 200 + Math.floor(data.length / 4);
             }
 
@@ -1133,7 +1157,7 @@
                     txsize: txsize,
                     fee: fee,
                     script: script_backup,
-                    script_orig : script
+                    script_orig: script
                 }
             );
         }
@@ -1149,6 +1173,13 @@
 
         let total_fees = 550 + (base_size * inscriptions.length) + total_fee + (padding * inscriptions.length);
 
+        let tip = parseInt($('#tip').value);
+
+        if(!isNaN(tip) && tip > 0)
+        {
+            total_fees += 50 + tip;
+        }
+
         let sats_price = await satsToDollars(total_fees);
         sats_price = Math.floor(sats_price * 100) / 100;
 
@@ -1158,9 +1189,11 @@
         let qr_value = "bitcoin:" + fundingAddress + "?amount=" + satsToBitcoin(total_fees);
         console.log("qr:", qr_value);
 
+        let overhead = total_fees - total_fee - (padding * inscriptions.length) - tip;
+
         $('.display').append(createQR(qr_value));
         $('.display').innerHTML += `<p class="checking_mempool">Checking the mempool<span class="dots">.</span></p>`;
-        $('.display').innerHTML += '<p>' + (padding * inscriptions.length) + ` sats will go to the address</p><p>${total_fee} sats will go to miners as a mining fee</p>`;
+        $('.display').innerHTML += '<p>' + (padding * inscriptions.length) + ` sats will go to the address.</p><p>${total_fee} sats will go to miners as a mining fee.</p><p>${overhead} sats overhead will be used as boost.</p><p>${tip} sats for developer tipping.</p>`;
         $('.display').style.display = "block";
         $('#setup').style.display = "none";
 
@@ -1181,7 +1214,7 @@
 
         console.log("yay! txid:", txid, "vout:", vout, "amount:", amt);
 
-        $('.modal-content').innerHTML = '<div id="funds-msg">Funds are on the way. Please wait...</div>';
+        $('.modal-content').innerHTML = '<div id="funds-msg">Funds are on the way. Please wait'+(!$('#cpfp').checked ? ' for the funding transaction to confirm (CPFP disabled)' : '')+'...</div>';
         $('.modal').style.display = "block";
 
         let outputs = [];
@@ -1199,6 +1232,16 @@
             );
 
             transaction.push({txsize : inscriptions[i].txsize, vout : i, script: inscriptions[i].script, output : outputs[outputs.length - 1]});
+        }
+
+        if(!isNaN(tip) && tip > 0)
+        {
+            outputs.push(
+                {
+                    value: tip,
+                    scriptPubKey: '5120' + TAPSCRIPT.Address.P2TR.decode(tippingAddress, encodedAddressPrefix).hex
+                }
+            );
         }
 
         await insStore(privkey, JSON.stringify(transaction));
@@ -1226,7 +1269,7 @@
 
         console.log('Init TX', _txid);
 
-        let include_mempool = true;
+        let include_mempool = $('#cpfp').checked;
 
         async function inscribe(inscription, vout) {
 
@@ -1510,6 +1553,7 @@
         let cloned = $$('.text_area')[0].cloneNode(true);
         cloned.value = '';
         document.getElementById("form_container").appendChild(cloned);
+        cloned.focus();
     }
 
     function arrayBufferToBuffer(ab) {
