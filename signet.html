@@ -268,7 +268,7 @@
 </head>
 <body>
 
-<h1>Looks Ordinal</h1>
+<h1>◉ Looks Ordinal</h1>
 <h6 style="margin-top: -15px;">
     Self-custodial bulk inscriptions. A free service hosted by <a href="https://rarity.garden" target="_blank">RarityGarden</a>.
 </h6>
@@ -465,7 +465,7 @@
                 <div class="name">Max</div>
             </div>
         </div>
-        <div id="sliderange">
+        <div style="margin-top: 15px;" id="sliderange">
             <label for="sats_range">sats/vB: <span id="sats_per_byte">1</span></label>
             <input class="form-range" id="sats_range" type="range" min="1" max="100" value="1">
         </div>
@@ -485,26 +485,26 @@
 
     <hr/>
 
-    <p>Options</p>
+    <div><label><span style="margin-right: 10px;">🔧</span> Options</label></div>
 
     <div>
-        <label for="padding">Sats in inscription (padding)</label>
-        <input style="width: 100%" id="padding" type="text" value=""/>
+        <label style="display: inline-block" for="padding"><span style="margin-left: 10px; margin-right: 16px;">₿</span> Sats in inscription (padding)</label>
+        <input style="width: 20%" id="padding" type="text" value=""/>
     </div>
     <div>
-        <label style="display: inline-block;" for="cpfp">Enable CPFP</label>
+        <label style="display: inline-block;" for="cpfp"><span style="margin-right: 6px;">🚀</span> Enable CPFP</label>
         <input style="display: inline-block; height: 0.9rem; width:unset" id="cpfp" type="checkbox" value="1" checked="checked"/>
     </div>
 
     <div id="backup" style="margin-top: 0px; margin-bottom: 10px;">
-        <div><a id="backup-usage" href="javascript:void(0);">Backup Usage</a>: <span id="db-quota"></span></div>
+        <div><span style="margin-right: 6px;">🚑</span> <a id="backup-usage" href="javascript:void(0);">Backup Usage</a> <span id="db-quota"></span></div>
         <div id="backup-recovery" style="border: 1px solid white; padding: 10px; display:none; margin-top: 15px; margin-bottom: 15px; max-height: 500px; overflow-x: auto"></div>
         <div id="backup-list" style="display:none; margin-top: 15px; max-height: 500px; overflow-x: auto"></div>
     </div>
 
     <div id="tipping" style="display: inline-block;">
-        <label for="tip" style="display: inline-block;margin-bottom: 0">Developer Tip:</label>
-        <input id="tip" style="width: 100px; margin-bottom:0;" type="text" value="" /> sats ($<span id="tip-usd">0</span>)
+        <label for="tip" style="display: inline-block;margin-bottom: 0"><span style="margin-right: 6px;">💖</span> Developer Tip</label>
+        <input id="tip" style="width: 100px; margin-bottom:0;" type="text" value="0" /> sats ($<span id="tip-usd">0</span>)
     </div>
 
     <hr/>
@@ -549,6 +549,10 @@
         $('.brc20_deploy').onclick = showBrc20Deploy;
         $('.brc20_transfer').onclick = showBrc20Transfer;
         $('#backup-usage').onclick = showBackupUsage;
+        $('#tip').onfocus = async function(){
+
+            this.value = '';
+        };
         $('#tip').onkeyup = async function(){
 
             let tip = $('#tip').value.replace(/[^0-9]/g, '');
@@ -559,7 +563,7 @@
             }
 
             $('#tip-usd').innerHTML = Number(await satsToDollars(tip)).toFixed(2);
-        }
+        };
 
         await initDatabase();
 
