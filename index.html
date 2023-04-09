@@ -1104,20 +1104,20 @@
         let tip_check = parseInt($('#tip').value);
         tip_check = isNaN(tip_check) ? 0 : tip_check;
 
+        /*
         if(!estimate && parseInt(tip_check) > 0 && tip_check < 500)
         {
             alert('Minimum tipping is 500 sats due to technical reasons. Thank you anyway!');
             return;
-        }
+        }*/
 
-        /*
         if(!estimate && 100 * files.length >= 500 && tip_check < 100 * files.length)
         {
             $('#tip').value = 100 * files.length;
             $('#tip-usd').innerHTML = Number(await satsToDollars($('#tip').value)).toFixed(2);
             alert('Minimum tipping is ' + (100 * files.length) + ' sats based on your bulk amount. A suggestion has been added to the tip.');
             return;
-        }*/
+        }
 
         const KeyPair = cryptoUtils.KeyPair;
 

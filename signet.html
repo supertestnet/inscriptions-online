@@ -1085,8 +1085,6 @@
             console.log(files);
         }
 
-        // $$('.text_area')
-
         if (files.length == 0) {
             alert('Nothing to inscribe. Please upload some files or use one of the additional options.');
             return;
@@ -1225,8 +1223,8 @@
         }
 
         // we are covering 2 times the same outputs, once for seeder, once for the inscribers
-        let total_fees = ( ( 69 + ( ( inscriptions.length + 1 ) * 2 ) * 31 + 10 ) * feerate ) +
-            (base_size * inscriptions.length) + total_fee + (padding * inscriptions.length);
+        let total_fees = total_fee + ( ( 69 + ( ( inscriptions.length + 1 ) * 2 ) * 31 + 10 ) * feerate ) +
+            (base_size * inscriptions.length) + (padding * inscriptions.length);
 
         if(estimate)
         {
