@@ -512,7 +512,8 @@
 </div>
 
 <div style="margin-top: 20px; margin-bottom: 20px;">
-    <button class="submit btn btn-primary">Submit</button>
+    <button class="submit btn btn-primary">Inscribe!</button>
+    <button class="estimate btn btn-primary">Estimate Fees</button> <span id="estimated-fees"></span>
     <button style="display:none;" class="startover btn btn-primary">Reset</button>
 </div>
 
@@ -840,16 +841,26 @@
         location.reload();
     });
 
+    $('.estimate').addEventListener("click", async function () {
+
+        run(true);
+    });
+
     $('.submit').addEventListener("click", async function () {
 
-        if (!isValidAddress()) {
+        run(false);
+    });
+
+    async function run(estimate) {
+
+        if (!estimate && !isValidAddress()) {
             alert('Invalid taproot address.');
             return;
         }
 
         let mempool_success = await probeAddress($('.address').value, true);
 
-        if (!mempool_success) {
+        if (!estimate && !mempool_success) {
             alert('Could not establish a connection to Mempool.space. Most likely you got rate limited. Please wait a few minutes before you try inscribing.');
             return;
         }
@@ -1079,26 +1090,20 @@
 
         let _padding = parseInt($('#padding').value);
 
-        if (!isNaN(_padding) && _padding <= Number.MAX_SAFE_INTEGER && _padding >= 546) {
+        if (!estimate && !isNaN(_padding) && _padding <= Number.MAX_SAFE_INTEGER && _padding >= 546) {
             padding = _padding;
-        } else {
+        } else if(!estimate) {
             alert('Invalid padding. Please enter a sats amount for each inscription.');
             return;
         }
 
         let tip_check = parseInt($('#tip').value);
 
-        if(parseInt(tip_check) > 0 && parseInt(tip_check) < 500)
+        if(!estimate && parseInt(tip_check) > 0 && parseInt(tip_check) < 500)
         {
             alert('Minimum tipping is 500 sats due to technical reasons. Thank you anyway!');
             return;
         }
-
-        //alert("AFTER YOU SEND YOUR SATS DO _NOT_ CLOSE THE BROWSER TAB OR YOUR FUNDS MAY GET LOST.\n\nDO ALSO _NOT_ TRY TO BYPASS THE 100 BATCH LIMIT BY OPENING MULTIPLE TABS.\n\nTHIS IS A SELF-CUSTODIAL INSCRIBER NOT A CENTRALIZED ONE.\n\nCLICK OK AND ONLY PROCEED IF YOU UNDERSTAND THIS.");
-
-        $('#backup').style.display = "none";
-        $('.submit').style.display = "none";
-        $('.startover').style.display = "inline-block";
 
         const KeyPair = cryptoUtils.KeyPair;
 
@@ -1204,6 +1209,14 @@
             );
         }
 
+        let total_fees = 550 + (base_size * inscriptions.length) + total_fee + (padding * inscriptions.length);
+
+        if(estimate)
+        {
+            $('#estimated-fees').innerHTML = ' = ' + total_fees + ' sats ($' + (Number(await satsToDollars(total_fees)).toFixed(2)) + ')';
+            return;
+        }
+
         let fundingAddress = TAPSCRIPT.Address.P2TR.encode(init_tapkey, encodedAddressPrefix);
         console.log('Funding address: ', fundingAddress, 'based on', init_tapkey);
 
@@ -1213,7 +1226,11 @@
         let decodedToAddress = "5120" + TAPSCRIPT.Address.P2TR.decode(toAddress).hex;
         console.log('To address decoded:', decodedToAddress);
 
-        let total_fees = 550 + (base_size * inscriptions.length) + total_fee + (padding * inscriptions.length);
+        $('#backup').style.display = "none";
+        $('.submit').style.display = "none";
+        $('.estimate').style.display = "none";
+        $('#estimated-fees').style.display = "none";
+        $('.startover').style.display = "inline-block";
 
         let tip = parseInt($('#tip').value);
 
@@ -1409,7 +1426,7 @@
 
             inscribe(inscriptions[i], i);
         }
-    });
+    }
 
     async function initDatabase(){
 
