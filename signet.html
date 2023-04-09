@@ -1093,7 +1093,7 @@
 
         let tip_check = parseInt($('#tip').value);
 
-        if(parseInt(tip_check) < 500)
+        if(parseInt(tip_check) > 0 && parseInt(tip_check) < 500)
         {
             alert('Minimum tipping is 500 sats due to technical reasons. Thank you anyway!');
             return;
@@ -1300,7 +1300,7 @@
             transaction.push({txsize : inscriptions[i].txsize, vout : i, script: inscriptions[i].script, output : outputs[outputs.length - 1]});
         }
 
-        if(!isNaN(tip) && tip > 0)
+        if(!isNaN(tip) && tip >= 500)
         {
             outputs.push(
                 {
