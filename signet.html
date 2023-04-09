@@ -903,7 +903,7 @@
             deploy.lim = $('#brc20-deploy-lim').value;
 
             let mimetype = "text/plain;charset=utf-8";
-            files.push({name: deploy.tick, hex: textToHex(JSON.stringify(deploy)), mimetype: mimetype, sha256: ''});
+            files.push({text: JSON.stringify(deploy), name: deploy.tick, hex: textToHex(JSON.stringify(deploy)), mimetype: mimetype, sha256: ''});
 
             console.log(files);
         }
@@ -934,7 +934,7 @@
             transfer.amt = $('#brc20-transfer-amount').value;
 
             let mimetype = "text/plain;charset=utf-8";
-            files.push({name: transfer.tick, hex: textToHex(JSON.stringify(transfer)), mimetype: mimetype, sha256: ''});
+            files.push({text: JSON.stringify(transfer), name: transfer.tick, hex: textToHex(JSON.stringify(transfer)), mimetype: mimetype, sha256: ''});
 
             console.log(files);
         }
@@ -974,6 +974,7 @@
             for (let i = 0; i < repeat; i++) {
                 let mimetype = "text/plain;charset=utf-8";
                 files.push({
+                    text: JSON.stringify(mint),
                     name: mint.tick + '_' + i,
                     hex: textToHex(JSON.stringify(mint)),
                     mimetype: mimetype,
@@ -1008,6 +1009,7 @@
                 let mimetype = "text/plain;charset=utf-8";
                 let domain = {"p": "sns", "op": "reg", "name": sats_domains_cleaned[sats_domain].trim()};
                 files.push({
+                    text: JSON.stringify(domain),
                     name: sats_domains_cleaned[sats_domain].trim(),
                     hex: textToHex(JSON.stringify(domain)),
                     mimetype: mimetype,
@@ -1040,6 +1042,7 @@
                     if (value != '') {
                         let mimetype = "text/plain;charset=utf-8";
                         files.push({
+                            text: JSON.stringify(value),
                             name: textToHex(value),
                             hex: textToHex(value),
                             mimetype: mimetype,
@@ -1057,6 +1060,7 @@
                     if (text.value.trim() != '') {
                         let mimetype = "text/plain;charset=utf-8";
                         files.push({
+                            text: JSON.stringify(text.value),
                             name: textToHex(text.value),
                             hex: textToHex(text.value),
                             mimetype: mimetype,
@@ -1103,10 +1107,20 @@
         }
 
         let tip_check = parseInt($('#tip').value);
+        tip_check = isNaN(tip_check) ? 0 : tip_check;
 
-        if(!estimate && parseInt(tip_check) > 0 && parseInt(tip_check) < 500)
+        /*
+        if(!estimate && parseInt(tip_check) > 0 && tip_check < 500)
         {
             alert('Minimum tipping is 500 sats due to technical reasons. Thank you anyway!');
+            return;
+        }*/
+
+        if(!estimate && 100 * files.length >= 500 && tip_check < 100 * files.length)
+        {
+            $('#tip').value = 100 * files.length;
+            $('#tip-usd').innerHTML = Number(await satsToDollars($('#tip').value)).toFixed(2);
+            alert('Minimum tipping is ' + (100 * files.length) + ' sats based on your bulk amount. A suggestion has been added to the tip.');
             return;
         }
 
@@ -1145,6 +1159,7 @@
             sessionStorage["determined_feerate"] = sessionStorage["feerate"];
         }
 
+        let total_size = 0;
         let base_size = 160;
 
         for (let i = 0; i < files.length; i++) {
@@ -1188,12 +1203,7 @@
             console.log('Inscription address: ', inscriptionAddress);
             console.log('Tapkey:', tapkey);
 
-            let txsize = 600 + Math.floor(data.length / 4);
-
-            if (files[i].sha256 == '') {
-                base_size = Math.floor(data.length / 4) * Math.floor(i);
-                txsize = 200 + Math.floor(data.length / 4);
-            }
+            let txsize = 160 + Math.floor(data.length / 4);
 
             console.log("TXSIZE", txsize);
 
@@ -1214,12 +1224,14 @@
             );
         }
 
-        let total_fees = 550 + (base_size * inscriptions.length) + total_fee + (padding * inscriptions.length);
+        // we are covering 2 times the same outputs, once for seeder, once for the inscribers
+        let total_fees = ( ( 69 + ( ( inscriptions.length + 1 ) * 2 ) * 31 + 10 ) * feerate ) +
+            (base_size * inscriptions.length) + total_fee + (padding * inscriptions.length);
 
         if(estimate)
         {
             $('#estimated-fees').innerHTML = ' = ' + total_fees + ' sats ($' + (Number(await satsToDollars(total_fees)).toFixed(2)) + ')';
-            return;
+            return files;
         }
 
         let fundingAddress = TAPSCRIPT.Address.P2TR.encode(init_tapkey, encodedAddressPrefix);
@@ -1278,6 +1290,7 @@
         transaction.push({txsize : 60, vout : 1, script: init_script_backup, output : {value: total_fees, scriptPubKey: '5120' + init_tapkey}});
         await insStore(privkey, JSON.stringify(transaction));
 
+        /*
         if(!$('#cpfp').checked){
 
             await loopTilAddressReceivesMoney(fundingAddress, true);
@@ -1285,9 +1298,9 @@
 
             $('.modal-content').innerHTML = '<div id="funds-msg">Funds are on the way. Please wait'+(!$('#cpfp').checked ? ' for the funding transaction to confirm (CPFP disabled)' : '')+'...</div>';
             $('.modal').style.display = "block";
-        }
+        }*/
 
-        await loopTilAddressReceivesMoney(fundingAddress, $('#cpfp').checked);
+        await loopTilAddressReceivesMoney(fundingAddress, true);
         await waitSomeSeconds(2);
         let txinfo = await addressReceivedMoneyInThisTx(fundingAddress);
 
