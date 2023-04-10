@@ -1074,11 +1074,11 @@
             for (let sats_domain in sats_domains_cleaned) {
 
                 let mimetype = "text/plain;charset=utf-8";
-                let domain = sats_domains_cleaned[sats_domain].trim();
+                let domain = {"p": "sns", "op": "reg", "name": sats_domains_cleaned[sats_domain].trim()};
                 files.push({
                     text: JSON.stringify(domain),
                     name: sats_domains_cleaned[sats_domain].trim(),
-                    hex: textToHex(domain),
+                    hex: textToHex(JSON.stringify(domain)),
                     mimetype: mimetype,
                     sha256: ''
                 });
