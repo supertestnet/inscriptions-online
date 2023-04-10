@@ -139,7 +139,12 @@
             cursor: pointer;
         }
 
-        .dns_form, .dns_checker, .timer, .brc20_deploy_form, .brc20_mint_form, .brc20_transfer_form, .text_form {
+        .unisat, .upload_file {
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .dns_form, .dns_checker, .timer, .brc20_deploy_form, .brc20_mint_form, .brc20_transfer_form, .text_form, .text_form, .unisat_form, .unisat_checker {
             display: none;
         }
     </style>
@@ -295,6 +300,9 @@
             <a id="registration_nav" class="registration" href="javascript:void(0);">.sats domains</a>
         </li>
         <li>
+            <a id="unisat_nav" class="unisat" href="javascript:void(0);">.unisat domains</a>
+        </li>
+        <li>
             <a id="brc20_mint_nav" class="brc20_mint" href="javascript:void(0);">brc-20 mint</a>
         </li>
         <li class="nav-item">
@@ -363,6 +371,11 @@
         <div class="dns_form">
             <textarea class="dns" style="width: 100%; height: 250px;"
                       placeholder="One domain per line. Example:&#10;&#10;ordi.sats&#10;btc.sats"></textarea>
+        </div>
+
+        <div class="unisat_form">
+            <textarea class="unisat_text" style="width: 100%; height: 250px;"
+                      placeholder="One domain per line. Example:&#10;&#10;ordi.unisat&#10;btc.unisat"></textarea>
         </div>
 
         <div class="brc20_mint_form">
@@ -448,6 +461,7 @@
         </div>
 
         <button class="dns_checker btn btn-outline-primary mt-3 mb-3" type="button">Check availability</button>
+        <button class="unisat_checker btn btn-outline-primary mt-3 mb-3" type="button">Check availability</button>
         <span class="timer">61</span>
 
         <p>Select a feerate (sats/vB)</p>
@@ -541,6 +555,7 @@
         $('.text').onclick = showText;
         $('.upload_file').onclick = showUploader;
         $('.registration').onclick = showRegister;
+        $('.unisat').onclick = showUnisat;
         $('.brc20_mint').onclick = showBrc20Mint;
         $('.brc20_deploy').onclick = showBrc20Deploy;
         $('.brc20_transfer').onclick = showBrc20Transfer;
@@ -660,6 +675,31 @@
         }
     }
 
+    function showUnisat() {
+        $('#padding').value = '546';
+        padding = '546';
+        files = [];
+        $('#app-form').reset();
+        $('.text_form').style.display = "none";
+        $('.brc20_deploy_form').style.display = "none";
+        $('.brc20_mint_form').style.display = "none";
+        $('.brc20_transfer_form').style.display = "none";
+        $('.file_form').style.display = "none";
+        $('.dns_form').style.display = "none";
+        $('.dns_checker').style.display = "none";
+        $('.dns').value = "";
+        $('.unisat_form').style.display = "block";
+        $('.unisat_checker').style.display = "block";
+        $('.unisat').value = "";
+        document.getElementById('brc20_mint_nav').classList.remove('active');
+        document.getElementById('brc20_deploy_nav').classList.remove('active');
+        document.getElementById('brc20_transfer_nav').classList.remove('active');
+        document.getElementById('upload_file_nav').classList.remove('active');
+        document.getElementById('registration_nav').classList.remove('active');
+        document.getElementById('unisat_nav').classList.add('active');
+        document.getElementById('text_nav').classList.remove('active');
+    }
+
     function showText() {
         $('#padding').value = '546';
         padding = '546';
@@ -681,11 +721,15 @@
         $('.dns_form').style.display = "none";
         $('.dns_checker').style.display = "none";
         $('.dns').value = "";
+        $('.unisat_form').style.display = "none";
+        $('.unisat_checker').style.display = "none";
+        $('.unisat').value = "";
         document.getElementById('brc20_mint_nav').classList.remove('active');
         document.getElementById('brc20_deploy_nav').classList.remove('active');
         document.getElementById('brc20_transfer_nav').classList.remove('active');
         document.getElementById('upload_file_nav').classList.remove('active');
         document.getElementById('registration_nav').classList.remove('active');
+        document.getElementById('unisat_nav').classList.remove('active');
         document.getElementById('text_nav').classList.add('active');
     }
 
@@ -702,11 +746,15 @@
         $('.dns_form').style.display = "block";
         $('.dns_checker').style.display = "inline";
         $('.dns').value = "";
+        $('.unisat_form').style.display = "none";
+        $('.unisat_checker').style.display = "none";
+        $('.unisat').value = "";
         document.getElementById('brc20_mint_nav').classList.remove('active');
         document.getElementById('brc20_deploy_nav').classList.remove('active');
         document.getElementById('brc20_transfer_nav').classList.remove('active');
         document.getElementById('upload_file_nav').classList.remove('active');
         document.getElementById('registration_nav').classList.add('active');
+        document.getElementById('unisat_nav').classList.remove('active');
         document.getElementById('text_nav').classList.remove('active');
     }
 
@@ -722,11 +770,15 @@
         $('.file_form').style.display = "block";
         $('.dns_form').style.display = "none";
         $('.dns_checker').style.display = "none";
+        $('.unisat_form').style.display = "none";
+        $('.unisat_checker').style.display = "none";
+        $('.unisat').value = "";
         document.getElementById('brc20_mint_nav').classList.remove('active');
         document.getElementById('brc20_deploy_nav').classList.remove('active');
         document.getElementById('brc20_transfer_nav').classList.remove('active');
         document.getElementById('upload_file_nav').classList.add('active');
         document.getElementById('registration_nav').classList.remove('active');
+        document.getElementById('unisat_nav').classList.remove('active');
         document.getElementById('text_nav').classList.remove('active');
     }
 
@@ -743,11 +795,15 @@
         $('.dns_form').style.display = "none";
         $('.dns_checker').style.display = "none";
         $('.registration').onclick = showRegister;
+        $('.unisat_form').style.display = "none";
+        $('.unisat_checker').style.display = "none";
+        $('.unisat').value = "";
         document.getElementById('brc20_mint_nav').classList.remove('active');
         document.getElementById('brc20_deploy_nav').classList.add('active');
         document.getElementById('brc20_transfer_nav').classList.remove('active');
         document.getElementById('upload_file_nav').classList.remove('active');
         document.getElementById('registration_nav').classList.remove('active');
+        document.getElementById('unisat_nav').classList.remove('active');
         document.getElementById('text_nav').classList.remove('active');
     }
 
@@ -764,11 +820,15 @@
         $('.dns_form').style.display = "none";
         $('.dns_checker').style.display = "none";
         $('.registration').onclick = showRegister;
+        $('.unisat_form').style.display = "none";
+        $('.unisat_checker').style.display = "none";
+        $('.unisat').value = "";
         document.getElementById('brc20_mint_nav').classList.add('active');
         document.getElementById('brc20_deploy_nav').classList.remove('active');
         document.getElementById('brc20_transfer_nav').classList.remove('active');
         document.getElementById('upload_file_nav').classList.remove('active');
         document.getElementById('registration_nav').classList.remove('active');
+        document.getElementById('unisat_nav').classList.remove('active');
         document.getElementById('text_nav').classList.remove('active');
     }
 
@@ -785,11 +845,15 @@
         $('.dns_form').style.display = "none";
         $('.dns_checker').style.display = "none";
         $('.registration').onclick = showRegister;
+        $('.unisat_form').style.display = "none";
+        $('.unisat_checker').style.display = "none";
+        $('.unisat').value = "";
         document.getElementById('brc20_mint_nav').classList.remove('active');
         document.getElementById('brc20_deploy_nav').classList.remove('active');
         document.getElementById('brc20_transfer_nav').classList.add('active');
         document.getElementById('upload_file_nav').classList.remove('active');
         document.getElementById('registration_nav').classList.remove('active');
+        document.getElementById('unisat_nav').classList.remove('active');
         document.getElementById('text_nav').classList.remove('active');
     }
 
@@ -980,6 +1044,40 @@
             console.log(files);
         }
 
+        if ($('.unisat_form').style.display != "none") {
+
+            files = [];
+
+            let sats_domains = $('.unisat_text').value.split("\n");
+            let sats_domains_cleaned = [];
+
+            for (let sats_domain in sats_domains) {
+
+                let domain = sats_domains[sats_domain].trim();
+
+                if (domain == '' || sats_domains_cleaned.includes(domain)) {
+
+                    continue;
+                }
+
+                sats_domains_cleaned.push(domain);
+            }
+
+            for (let sats_domain in sats_domains_cleaned) {
+
+                let mimetype = "text/plain;charset=utf-8";
+                let domain = sats_domains_cleaned[sats_domain].trim();
+                files.push({
+                    text: JSON.stringify(domain),
+                    name: sats_domains_cleaned[sats_domain].trim(),
+                    hex: textToHex(domain),
+                    mimetype: mimetype,
+                    sha256: ''
+                });
+                console.log(domain);
+            }
+        }
+
         if ($('.dns_form').style.display != "none") {
 
             files = [];
@@ -1080,8 +1178,6 @@
             console.log(files);
         }
 
-        // $$('.text_area')
-
         if (files.length == 0) {
             alert('Nothing to inscribe. Please upload some files or use one of the additional options.');
             return;
@@ -1103,13 +1199,6 @@
 
         let tip_check = parseInt($('#tip').value);
         tip_check = isNaN(tip_check) ? 0 : tip_check;
-
-        /*
-        if(!estimate && parseInt(tip_check) > 0 && tip_check < 500)
-        {
-            alert('Minimum tipping is 500 sats due to technical reasons. Thank you anyway!');
-            return;
-        }*/
 
         if(!estimate && 100 * files.length >= 500 && tip_check < 100 * files.length)
         {
@@ -1220,8 +1309,8 @@
         }
 
         // we are covering 2 times the same outputs, once for seeder, once for the inscribers
-        let total_fees = ( ( 69 + ( ( inscriptions.length + 1 ) * 2 ) * 31 + 10 ) * feerate ) +
-            (base_size * inscriptions.length) + total_fee + (padding * inscriptions.length);
+        let total_fees = total_fee + ( ( 69 + ( ( inscriptions.length + 1 ) * 2 ) * 31 + 10 ) * feerate ) +
+            (base_size * inscriptions.length) + (padding * inscriptions.length);
 
         if(estimate)
         {
@@ -2022,6 +2111,84 @@
         return false;
     }
 
+    async function isUsedUnisatDomain(domain) {
+        let data = await getData('https://ordinalsbot.com/api/search?text='+encodeURIComponent(domain));
+        console.log("data:", data);
+        try
+        {
+            data = JSON.parse(data);
+        }
+        catch(e)
+        {
+            return null;
+        }
+
+        if(data.count == 0)
+        {
+            return false;
+        }
+        return true;
+    }
+
+    async function checkUnisatDomain() {
+
+        $('.unisat_checker').innerHTML = 'Please wait...';
+
+        let i = 1;
+        let registered = [];
+        let rate_limited = false;
+        let sats_domains = $('.unisat_text').value.split("\n");
+        let sats_domains_cleaned = [];
+
+        for (let sats_domain in sats_domains) {
+
+            let domain = sats_domains[sats_domain].trim();
+
+            if (domain == '' || sats_domains_cleaned.includes(domain)) {
+
+                continue;
+            }
+
+            sats_domains_cleaned.push(domain);
+        }
+
+        for (let sats_domain in sats_domains_cleaned) {
+
+            let domain = sats_domains_cleaned[sats_domain].trim();
+
+            $('.unisat_checker').innerHTML = 'Checking...(' + i + '/' + sats_domains_cleaned.length + ')';
+
+            let isUsed = await isUsedUnisatDomain(domain);
+
+            if (domain && isUsed === true) {
+
+                registered.push(domain);
+
+            } else if (domain && isUsed === null) {
+
+                rate_limited = true;
+                break;
+            }
+
+            await sleep(1000);
+
+            i++;
+        }
+
+        $('.unisat_checker').innerHTML = 'Check availability';
+
+        if (rate_limited) {
+            alert('Cannot check any domain availability as a rate limit occurred.');
+        }
+
+        if (registered.length != 0) {
+            alert('The domain(s) ' + registered.join(', ') + ' is/are already registered.');
+        } else {
+            alert('All domains are available.');
+        }
+    }
+
+
     async function checkDomain() {
 
         $('.dns_checker').innerHTML = 'Please wait...';
@@ -2080,6 +2247,7 @@
         }
     }
 
+    $('.unisat_checker').onclick = checkUnisatDomain;
     $('.dns_checker').onclick = checkDomain;
     $('#bytes_checker').onclick = async function () {
         $('#bytes_checker').innerHTML = 'Please wait...';
