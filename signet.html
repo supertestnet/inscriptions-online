@@ -2130,7 +2130,7 @@
     $('.address').onkeyup = checkAddress;
 
     async function isUsedDomain(domain) {
-        let data = await getData(`https://api.sats.id/names/${domain}`);
+        let data = await getData(`https://api.sats.id/names/${encodeURIComponent(domain)}`);
         console.log("data:", data);
         data = JSON.parse(data);
         console.log("data:", data);
@@ -2140,8 +2140,38 @@
     }
 
     async function isUsedUnisatDomain(domain) {
+
         let data = await getData('existence.php?text='+encodeURIComponent(domain));
 
+        try
+        {
+            data = JSON.parse(data);
+        }
+        catch(e)
+        {
+            // in case of the api not available or php not being executed, check the text and hope for the best
+            let fallback = await isUsedUnisatDomainFallback(':"'+domain+'"');
+
+            if(fallback === false)
+            {
+                fallback = await isUsedUnisatDomainFallback(domain);
+            }
+
+            return fallback;
+        }
+
+        if(typeof data.data[domain] == 'undefined' || data.data[domain] == 'available')
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    async function isUsedUnisatDomainFallback(domain) {
+
+        let data = await getData('https://ordinalsbot.com/api/search?text='+encodeURIComponent(domain));
+        console.log("data:", data);
         try
         {
             data = JSON.parse(data);
@@ -2151,7 +2181,7 @@
             return null;
         }
 
-        if(typeof data.data[domain] == 'undefined' || data.data[domain] == 'available')
+        if(data.count == 0)
         {
             return false;
         }
