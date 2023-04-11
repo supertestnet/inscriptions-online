@@ -2128,8 +2128,8 @@
     }
 
     async function isUsedUnisatDomain(domain) {
-        let data = await getData('https://ordinalsbot.com/api/search?text='+encodeURIComponent(domain));
-        console.log("data:", data);
+        let data = await getData('existence.php?text='+encodeURIComponent(domain));
+
         try
         {
             data = JSON.parse(data);
@@ -2139,10 +2139,11 @@
             return null;
         }
 
-        if(data.count == 0)
+        if(typeof data.data[domain] == 'undefined' || data.data[domain] == 'available')
         {
             return false;
         }
+
         return true;
     }
 
