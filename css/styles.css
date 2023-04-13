@@ -1,0 +1,201 @@
+* {
+    box-sizing: border-box;
+    font-size: 1.15rem;
+    font-family: monospace;
+    background-color: black;
+    color: white;
+}
+body{
+    padding: 0;
+    margin: 0;
+}
+.app-wrapper {
+    max-width: 70ch;
+    padding: 3rem 1rem;
+    margin: auto;
+    line-height: 1.25;
+}
+ul li a{
+    text-decoration: none !important;
+}
+a.active:before
+{
+    content : '['
+}
+a.active:after
+{
+    content : ']'
+}
+h1 {
+    font-size: 2rem;
+}
+h2 {
+    font-size: 1.5rem;
+}
+label
+{
+    display: block;
+    margin-bottom: 10px;
+}
+input {
+    line-height: 1.25;
+    width: 100%;
+    height: 1.8rem;
+    font-size: 1.15rem;
+    border: 1px solid white;
+    margin-bottom: 10px;
+}
+.black-bg{
+    display:none;
+    width:100%;
+    position:fixed;
+    top:0;
+    left:0;
+    background-color:black;
+    opacity:.5;
+    width:100vw;
+    height:100vh;
+}
+.modal {
+    display: none;
+    position: fixed;
+    box-sizing: border-box;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    max-width: 560px;
+    max-height: 100vh;
+    background-color: white;
+    padding: 20px;
+    color: black;
+    text-align: center;
+    border-radius: 25px;
+    border: 2px solid var(--primary-color);
+}
+
+.modal-content {
+    overflow-y: auto;
+    max-height: 85vh;
+    background-color: white;
+    color: black;
+    text-align: center;
+    border: transparent;
+}
+
+.display {
+    display: none;
+    border: 1px solid white;
+    padding: 1rem;
+    border-radius: 1rem;
+    word-wrap: break-word;
+    text-align: center;
+    position: relative;
+}
+
+.display p {
+    text-align: left;
+}
+
+.checking_mempool, .checking_mempool span {
+    color: lightgreen;
+}
+
+.feerates {
+    display: flex;
+    justify-content: space-around;
+}
+
+.fee {
+    width: 100%;
+    max-width: 6rem;
+    margin: 0px 0.5rem;
+    text-align: center;
+    cursor: pointer;
+}
+
+.fee .num {
+    background-color: grey;
+    border: 1px solid white;
+    padding: .3rem;
+}
+
+.midfee .num {
+    background-color: green;
+}
+
+.safari_warning {
+    display: none;
+}
+
+.registration, .upload_file {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.unisat, .upload_file {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.dns_form, .dns_checker, .timer, .brc20_deploy_form, .brc20_mint_form, .brc20_transfer_form, .text_form, .text_form, .unisat_form, .unisat_checker {
+    display: none;
+}
+
+nav
+{
+    position: fixed;
+    width: 100%;
+    border-bottom: 1px solid white;
+    padding: 10px;
+}
+
+nav ul, .list-group {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+nav ul li {
+
+    font-size: 16px;
+    display: inline-block;
+
+}
+
+nav ul li a {
+
+    font-size: 16px;
+    color: orange;
+}
+
+#logo
+{
+    color: orange;
+}
+
+.active{
+
+    color: white;
+    text-decoration: underline;
+}
+
+.list-group{
+
+    margin-top: 25px;
+}
+
+.list-group li{
+
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.message
+{
+    border: 1px solid white;
+    padding: 15px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    color: orange;
+}

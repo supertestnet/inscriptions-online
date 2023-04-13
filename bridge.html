@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no"/>
+    <link rel="shortcut icon" type="image/png" href="favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <title>LooksOrdinal | ord/eth bridge</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="js/lib/jquery.3.6.4.js"></script>
+    <script src="js/lib/socket.io.4.4.1.js"></script>
+    <script src="js/lib/web3.min.js"></script>
+</head>
+<body>
+
+<nav>
+    <ul>
+        <li id="logo"><a href="index.html">looks◉rdinal &gt;&gt;</a></li>
+        <li><a href="index.html">inscribe</a></li>
+        <li>|</li>
+        <li class="active">ord/eth bridge</li>
+        <li>|</li>
+        <li><a href="universe.html">$univ</a></li>
+    </ul>
+</nav>
+
+<div class="app-wrapper">
+
+    <h1>Ord/Eth Bridge</h1>
+    <h6 style="margin-top: -15px;">
+      Bridge Ordinals to Ethereum and back again. See <a href="https://opensea.io/collection/ordinals-bridge" target="_blank">Collection on OpenSea</a>. Hosted by <a href="https://rarity.garden" target="_blank">RarityGarden</a>.
+        Join
+        our <a href="https://discord.gg/Ur8XGaurSd" target="_blank">Discord</a>.
+    </h6>
+
+    <button style="display: none;" className="btn btn-primary" id="rn-connect-metamask">CONNECT WALLET</button>
+
+    <div id="message-main" style="display: none;"></div>
+
+    <h3>&gt;&gt; Bridge Ordinal to Ethereum</h3>
+    <div>
+        <div>
+            <div id="message-bridge" style="display: none;"></div>
+            <input id="bridge-field" type="text" placeholder="Enter Inscription ID (not number)"/>
+            <div id="fee-info" style="display: none;font-size: 16px;">
+                Recommended fee:
+                <span class="fee" style="font-size: 16px;"></span> sat/vB
+            </div>
+        </div>
+
+      <div style="font-size: 14px; margin-bottom: 15px;color:gray;">You need to be connected with your Ethereum
+        wallet in order to bridge your Ordinal. Once bridged, you will be able to mint its corresponding NFT.
+      </div>
+      <div>
+        <button id="bridge">Bridge</button> <span style="display: none;" class="loading dots">.</span>
+      </div>
+        <div id="mint-jobs"></div>
+    </div>
+
+    <h3>&gt;&gt; Return Ordinal</h3>
+    <div>
+        <div>
+            <div id="message-return" style="display: none;"></div>
+            <input id="return-field" type="text" placeholder="Enter Inscription ID (not number)"/>
+        </div>
+      <div style="font-size: 14px; margin-bottom: 15px;color:gray;">You need to be in possession of the bridged NFT and connected with your Ethereum
+        wallet in order to return your Ordinal.
+      </div>
+        <div>
+            <button id="return">Return</button>
+        </div>
+
+        <div id="vault-list" style="max-height: 200px; overflow: auto;"></div>
+        <div id="message-vault" style="display: none;"></div>
+    </div>
+
+    <ul class="list-group" id="latest-bridged"></ul>
+
+</div>
+
+<script src="js/app/app-config.1.0.0.js"></script>
+<script src="js/app/bridge/connectwallet.1.0.3.js"></script>
+<script src="js/app/bridge/tools.1.0.0.js"></script>
+<script src="js/app/bridge/ordinalsBridgeABI.js"></script>
+<script src="js/app/bridge/ordinal_bridge.1.0.0.js"></script>
+
+
+</body>
+</html>
