@@ -8,6 +8,34 @@ function loot(){
 
             files = [];
 
+            function pluck(item, keyPrefix, key, token_id) {
+
+                let rand = parseInt(textToHex(keyPrefix), 16) + parseInt(token_id, 16);
+                let output = item[Math.floor(rand % item.length)];
+                let greatness = rand % 22;
+
+                if(greatness > 14)
+                {
+                    output = output + ' ' + suffixes[rand % suffixes.length];
+                }
+
+                if(greatness >= 19)
+                {
+                    let pre = namePrefixes[rand % namePrefixes.length];
+                    let suf = nameSuffixes[rand % nameSuffixes.length];
+
+                    if(greatness == 19){
+                        output = '"'+pre+' '+suf+'" ' + output;
+                    }
+                    else
+                    {
+                        output = '"'+pre+' '+suf+'" ' + output + ' +1';
+                    }
+                }
+
+                return output;
+            }
+
             let weapons = [
                 "Warhammer",
                 "Quarterstaff",
@@ -184,60 +212,47 @@ function loot(){
                 "Moon"
             ];
 
-            function pluck(item, keyPrefix, key) {
+            let loot_ids = $('#loot_id').value.trim().split("\n");
 
-                let rand = parseInt(textToHex(keyPrefix), 16) + parseInt($('#loot_id').value, 16);
-                let output = item[Math.floor(rand % item.length)];
-                let greatness = rand % 22;
+            console.log(loot_ids);
 
-                if(greatness > 14)
+            for(let i = 0; i < loot_ids.length; i++)
+            {
+
+                let id = parseInt(loot_ids[i]);
+
+                if(!isNaN(id))
                 {
-                    output = output + ' ' + suffixes[rand % suffixes.length];
+
+                    let svg = '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350">' +
+                        '<style>.base { fill: white; font-family: serif; font-size: 14px; }</style>' +
+                        '<rect width="100%" height="100%" fill="black" />' +
+                        '<text x="10" y="20" class="base">' + pluck(weapons, "WEAPON", privkey, id+'') + '</text>' +
+                        '<text x="10" y="40" class="base">' + pluck(chestArmor, "CHEST", privkey, id+'') + '</text>' +
+                        '<text x="10" y="60" class="base">' + pluck(headArmor, "HEAD", privkey, id+'') + '</text>' +
+                        '<text x="10" y="80" class="base">' + pluck(waistArmor, "WAIST", privkey, id+'') + '</text>' +
+                        '<text x="10" y="100" class="base">' + pluck(footArmor, "FOOT", privkey, id+'') + '</text>' +
+                        '<text x="10" y="120" class="base">' + pluck(handArmor, "HAND", privkey, id+'') + '</text>' +
+                        '<text x="10" y="140" class="base">' + pluck(necklaces, "NECK", privkey, id+'') + '</text>' +
+                        '<text x="10" y="160" class="base">' + pluck(rings, "RING", privkey, id+'') + '</text>' +
+                        '</svg>';
+
+                    let blob = new Blob([svg], {type: 'image/svg+xml'});
+                    let sha256 = await fileToSha256Hex(blob);
+                    let _mimetype = "image/svg+xml";
+
+                    files.push(
+                        {
+                            token_id : id,
+                            text : svg,
+                            name: textToHex(svg),
+                            hex: textToHex(svg),
+                            mimetype: _mimetype,
+                            sha256: sha256.replace('0x','')
+                        }
+                    );
                 }
-
-                if(greatness >= 19)
-                {
-                    let pre = namePrefixes[rand % namePrefixes.length];
-                    let suf = nameSuffixes[rand % nameSuffixes.length];
-
-                    if(greatness == 19){
-                        output = '"'+pre+' '+suf+'" ' + output;
-                    }
-                    else
-                    {
-                        output = '"'+pre+' '+suf+'" ' + output + ' +1';
-                    }
-                }
-
-                return output;
             }
-
-            let svg = '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350">' +
-                '<style>.base { fill: white; font-family: serif; font-size: 14px; }</style>' +
-                '<rect width="100%" height="100%" fill="black" />' +
-                '<text x="10" y="20" class="base">' + pluck(weapons, "WEAPON", privkey) + '</text>' +
-                '<text x="10" y="40" class="base">' + pluck(chestArmor, "CHEST", privkey) + '</text>' +
-                '<text x="10" y="60" class="base">' + pluck(headArmor, "HEAD", privkey) + '</text>' +
-                '<text x="10" y="80" class="base">' + pluck(waistArmor, "WAIST", privkey) + '</text>' +
-                '<text x="10" y="100" class="base">' + pluck(footArmor, "FOOT", privkey) + '</text>' +
-                '<text x="10" y="120" class="base">' + pluck(handArmor, "HAND", privkey) + '</text>' +
-                '<text x="10" y="140" class="base">' + pluck(necklaces, "NECK", privkey) + '</text>' +
-                '<text x="10" y="160" class="base">' + pluck(rings, "RING", privkey) + '</text>' +
-                '</svg>';
-
-            let blob = new Blob([svg], {type: 'image/svg+xml'});
-            let sha256 = await fileToSha256Hex(blob);
-            let _mimetype = "image/svg+xml";
-
-            files.push(
-                {
-                    text : svg,
-                    name: textToHex(svg),
-                    hex: textToHex(svg),
-                    mimetype: _mimetype,
-                    sha256: sha256.replace('0x','')
-                }
-            );
 
             console.log(files);
         }
@@ -251,18 +266,21 @@ function loot(){
 
             for (let i = 0; i < files.length; i++) {
 
-                $('#loot_checker').innerHTML = 'Please wait...';
+                $('#loot_checker').innerHTML = 'Please wait...(' + (i + 1) + '/' + files.length + ')';
 
                 let hash_result = await getData('https://api2.ordinalsbot.com/search?hash=' + files[i].sha256);
 
                 console.log(hash_result);
 
                 try {
+
                     hash_result = JSON.parse(hash_result);
 
                     if (hash_result.results.length != 0) {
-                        inscribed_already.push(files[i].name);
+
+                        inscribed_already.push(files[i].token_id);
                     }
+
                 } catch (e) {
                     errors.push(files[i].name);
                 }
@@ -270,10 +288,12 @@ function loot(){
             }
 
             if (inscribed_already.length != 0) {
-                alert('The token id has been looted already');
+
+                alert('The token id(s) has/have been looted already: ' + inscribed_already.join(', '));
             }
 
             if (errors.length != 0) {
+
                 alert("Could not check the following loot due to an error: " + inscribed_already.join(', '));
             }
 
@@ -281,7 +301,7 @@ function loot(){
                 alert("Your loot seems available.");
             }
 
-            $('#loot_checker').innerHTML = 'Check if this token id got looted already';
+            $('#loot_checker').innerHTML = 'Check if the token ids got looted already';
         }
     }
 
@@ -298,20 +318,29 @@ function loot(){
     _this.render = async function(){
 
         return '<p>LOOT for Taproot is the first LOOT derivative on Bitcoin, made by Rarity Garden. Read more about the LOOT Foundation <a href="https://loot.foundation/" target="_blank">here</a>.</p><div>' +
-            '<p>To find available loot, please pick a random token id between 8001 - 17800 below and check if it got looted already. If not, you may inscribe and the loot will be yours.</p>' +
-        '        <label for="loot_id">LOOT TOKEN ID</label>' +
-        '        <input id="loot_id" class="address" placeholder="Enter a TOKEN ID from 8001 - 17800 to inscribe">' +
+            '<p>To find available loot, please pick random token ids between 8001 - 17800 below and check if they got looted already. If not, you may inscribe and the loot will be yours.</p>' +
+        '        <label for="loot_id">LOOT TOKEN IDs</label>' +
+        '        <textarea id="loot_id" style="width: 100%; height: 150px;" class="text_area" placeholder="Enter random TOKEN IDs from 8001 - 17800 per line.&#10;e.g.:&#10;8001&#10;8002&#10;8003"></textarea>' +
         '      </div>' +
         '      <button style="margin-top: 15px;" id="loot_checker" type="button">' +
-        '      Check if this token id got looted already' +
+        '      Check if the token ids got looted already' +
         '      </button>';
     }
 
     _this.prepare = async function(){
 
-        if($('#loot_id').value == '' || isNaN($('#loot_id').value) || parseInt($('#loot_id').value) < 8001 || parseInt($('#loot_id').value) > 17800){
-            alert('Please enter a TOKEN ID from 8001 - 17800 to inscribe');
-            return false;
+        let loot_ids = $('#loot_id').value.trim().split("\n");
+
+        for(let i = 0; i < loot_ids.length; i++) {
+
+            let id = parseInt(loot_ids[i]);
+
+            if(isNaN(id) || id < 8001 || id > 17800)
+            {
+
+                alert('Please enter TOKEN IDs from 8001 - 17800 to inscribe. Token ID ' + id + ' is out of range.');
+                return false;
+            }
         }
 
         return true;
