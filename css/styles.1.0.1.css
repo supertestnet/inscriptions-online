@@ -199,3 +199,18 @@ nav ul li a {
     margin-bottom: 15px;
     color: orange;
 }
+
+.options
+{
+    vertical-align: top;
+    display: inline-block;
+    width: 45%;
+}
+
+@media screen and (max-width: 679px) {
+    .options
+    {
+        display: block;
+        width: 100%;
+    }
+}

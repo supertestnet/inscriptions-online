@@ -2,6 +2,7 @@ const buf = buffer;
 const TAPSCRIPT = window.tapscript;
 
 let db;
+let active_plugin = null;
 let $ = document.querySelector.bind(document);
 let $$ = document.querySelectorAll.bind(document);
 let url_params = new URLSearchParams(window.location.search);
@@ -67,6 +68,8 @@ window.onload = async function () {
         $('#db-quota').innerHTML = usage + '%';
 
     }, 5000);
+
+    loadPlugins();
 };
 
 async function showBackupUsage()
@@ -169,6 +172,11 @@ function showUnisat() {
     $('.unisat_form').style.display = "block";
     $('.unisat_checker').style.display = "block";
     $('.unisat').value = "";
+    $('#plugin_form').style.display = 'none';
+    $$('.options a').forEach(function(item){
+        item.classList.remove('active');
+    });
+    active_plugin = null;
     document.getElementById('brc20_mint_nav').classList.remove('active');
     document.getElementById('brc20_deploy_nav').classList.remove('active');
     document.getElementById('brc20_transfer_nav').classList.remove('active');
@@ -202,6 +210,11 @@ function showText() {
     $('.unisat_form').style.display = "none";
     $('.unisat_checker').style.display = "none";
     $('.unisat').value = "";
+    $('#plugin_form').style.display = 'none';
+    $$('.options a').forEach(function(item){
+        item.classList.remove('active');
+    });
+    active_plugin = null;
     document.getElementById('brc20_mint_nav').classList.remove('active');
     document.getElementById('brc20_deploy_nav').classList.remove('active');
     document.getElementById('brc20_transfer_nav').classList.remove('active');
@@ -227,6 +240,11 @@ function showRegister() {
     $('.unisat_form').style.display = "none";
     $('.unisat_checker').style.display = "none";
     $('.unisat').value = "";
+    $('#plugin_form').style.display = 'none';
+    $$('.options a').forEach(function(item){
+        item.classList.remove('active');
+    });
+    active_plugin = null;
     document.getElementById('brc20_mint_nav').classList.remove('active');
     document.getElementById('brc20_deploy_nav').classList.remove('active');
     document.getElementById('brc20_transfer_nav').classList.remove('active');
@@ -251,6 +269,11 @@ function showUploader() {
     $('.unisat_form').style.display = "none";
     $('.unisat_checker').style.display = "none";
     $('.unisat').value = "";
+    $('#plugin_form').style.display = 'none';
+    $$('.options a').forEach(function(item){
+        item.classList.remove('active');
+    });
+    active_plugin = null;
     document.getElementById('brc20_mint_nav').classList.remove('active');
     document.getElementById('brc20_deploy_nav').classList.remove('active');
     document.getElementById('brc20_transfer_nav').classList.remove('active');
@@ -276,6 +299,11 @@ function showBrc20Deploy() {
     $('.unisat_form').style.display = "none";
     $('.unisat_checker').style.display = "none";
     $('.unisat').value = "";
+    $('#plugin_form').style.display = 'none';
+    $$('.options a').forEach(function(item){
+        item.classList.remove('active');
+    });
+    active_plugin = null;
     document.getElementById('brc20_mint_nav').classList.remove('active');
     document.getElementById('brc20_deploy_nav').classList.add('active');
     document.getElementById('brc20_transfer_nav').classList.remove('active');
@@ -301,6 +329,11 @@ function showBrc20Mint() {
     $('.unisat_form').style.display = "none";
     $('.unisat_checker').style.display = "none";
     $('.unisat').value = "";
+    $('#plugin_form').style.display = 'none';
+    $$('.options a').forEach(function(item){
+        item.classList.remove('active');
+    });
+    active_plugin = null;
     document.getElementById('brc20_mint_nav').classList.add('active');
     document.getElementById('brc20_deploy_nav').classList.remove('active');
     document.getElementById('brc20_transfer_nav').classList.remove('active');
@@ -326,6 +359,11 @@ function showBrc20Transfer() {
     $('.unisat_form').style.display = "none";
     $('.unisat_checker').style.display = "none";
     $('.unisat').value = "";
+    $('#plugin_form').style.display = 'none';
+    $$('.options a').forEach(function(item){
+        item.classList.remove('active');
+    });
+    active_plugin = null;
     document.getElementById('brc20_mint_nav').classList.remove('active');
     document.getElementById('brc20_deploy_nav').classList.remove('active');
     document.getElementById('brc20_transfer_nav').classList.add('active');
@@ -672,6 +710,16 @@ async function run(estimate) {
         console.log(files);
     }
 
+    if(active_plugin !== null)
+    {
+        let plugin_result = await active_plugin.instance.prepare();
+
+        if(plugin_result === false)
+        {
+            return;
+        }
+    }
+
     if (files.length == 0) {
         alert('Nothing to inscribe. Please upload some files or use one of the additional options.');
         return;
@@ -744,7 +792,6 @@ async function run(estimate) {
         sessionStorage["determined_feerate"] = sessionStorage["feerate"];
     }
 
-    let total_size = 0;
     let base_size = 160;
 
     for (let i = 0; i < files.length; i++) {
@@ -1643,7 +1690,7 @@ async function isUsedUnisatDomain(domain) {
 
 async function isUsedUnisatDomainFallback(domain) {
 
-    let data = await getData('https://ordinalsbot.com/api/search?text='+encodeURIComponent(domain));
+    let data = await getData('https://api2.ordinalsbot.com/search?text='+encodeURIComponent(domain));
     console.log("data:", data);
     try
     {
@@ -1790,7 +1837,9 @@ $('#bytes_checker').onclick = async function () {
     for (let i = 0; i < files.length; i++) {
         $('#bytes_checker').innerHTML = 'Please wait...(' + (i + 1) + '/' + files.length + ')';
 
-        let hash_result = await getData('https://ordinalsbot.com/api/search?hash=' + files[i].sha256);
+        let hash_result = await getData('https://api2.ordinalsbot.com/search?hash=' + files[i].sha256);
+
+        console.log(hash_result);
 
         try {
             hash_result = JSON.parse(hash_result);

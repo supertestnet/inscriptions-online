@@ -6,7 +6,7 @@
     <link rel="shortcut icon" type="image/png" href="favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <title>LooksOrdinal</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/styles.1.0.1.css">
     <script src="js/lib/indexeddb.js"></script>
     <script src="js/lib/wif.js"></script>
     <script src="js/lib/buffer.6.0.3.js"></script>
@@ -47,33 +47,43 @@
 
         <p>&gt;&gt; Please choose what you want to inscribe:</p>
 
-        <ul>
-            <li>
-                <a id="upload_file_nav" class="upload_file active" href="javascript:void(0);">files</a>
-            </li>
-            <li>
-                <a id="text_nav" class="text" href="javascript:void(0);">text</a>
-            </li>
-            <li>
-                <a id="registration_nav" class="registration" href="javascript:void(0);">.sats domains</a>
-            </li>
-            <li>
-                <a id="unisat_nav" class="unisat" href="javascript:void(0);">.unisat domains</a>
-            </li>
-            <li>
-                <a id="brc20_mint_nav" class="brc20_mint" href="javascript:void(0);">brc-20 mint</a>
-            </li>
-            <li class="nav-item">
-                <a id="brc20_deploy_nav" class="brc20_deploy" href="javascript:void(0);">brc-20 deploy</a>
-            </li>
-            <li class="nav-item">
-                <a id="brc20_transfer_nav" class="brc20_transfer" href="javascript:void(0);">brc-20 transfer</a>
-            </li>
-        </ul>
+        <div class="options">
+            <div>Standard</div>
+            <div style="font-size: 14px; color: gray;">Most popular &amp; standard inscriptions</div>
+            <ul>
+                <li>
+                    <a id="upload_file_nav" class="upload_file active" href="javascript:void(0);">files</a>
+                </li>
+                <li>
+                    <a id="text_nav" class="text" href="javascript:void(0);">text</a>
+                </li>
+                <li>
+                    <a id="registration_nav" class="registration" href="javascript:void(0);">.sats domains</a>
+                </li>
+                <li>
+                    <a id="unisat_nav" class="unisat" href="javascript:void(0);">.unisat domains</a>
+                </li>
+                <li>
+                    <a id="brc20_mint_nav" class="brc20_mint" href="javascript:void(0);">brc-20 mint</a>
+                </li>
+                <li class="nav-item">
+                    <a id="brc20_deploy_nav" class="brc20_deploy" href="javascript:void(0);">brc-20 deploy</a>
+                </li>
+                <li class="nav-item">
+                    <a id="brc20_transfer_nav" class="brc20_transfer" href="javascript:void(0);">brc-20 transfer</a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="options" style="display: none;" id="plugin-list">
+            <div>Special</div>
+            <div style="font-size: 14px; color: gray;"><a style="font-size: 14px; color: gray;"href="https://discord.gg/Ur8XGaurSd" target="_blank">Contact us</a> to list your project here</div>
+            <ul style="vertical-align: top;"></ul>
+        </div>
 
         <form id="app-form">
 
-            <div class="file_form">
+            <div class="file_form option_form">
                 <input
                         accept=".json,
                             .pdf,
@@ -99,12 +109,12 @@
                             .webm
                             " type="file" class="form" multiple>
 
-                <button style="margin-top: 15px;" id="bytes_checker" type="button" class="btn btn-outline-primary mb-3">
+                <button style="margin-top: 15px;" id="bytes_checker" type="button">
                     Check if file(s) are inscribed already
                 </button>
             </div>
 
-            <div class="text_form">
+            <div class="text_form option_form">
 
                 <div id="form_container">
 
@@ -127,17 +137,19 @@
 
             </div>
 
-            <div class="dns_form">
+            <div class="dns_form option_form">
             <textarea class="dns" style="width: 100%; height: 250px;"
                       placeholder="One domain per line. Example:&#10;&#10;ordi.sats&#10;btc.sats"></textarea>
+                <button class="dns_checker btn btn-outline-primary mt-3 mb-3" type="button">Check availability</button>
             </div>
 
-            <div class="unisat_form">
+            <div class="unisat_form option_form">
             <textarea class="unisat_text" style="width: 100%; height: 250px;"
                       placeholder="One domain per line. Example:&#10;&#10;ordi.unisat&#10;btc.unisat"></textarea>
+                <button class="unisat_checker btn btn-outline-primary mt-3 mb-3" type="button">Check availability</button>
             </div>
 
-            <div class="brc20_mint_form">
+            <div class="brc20_mint_form option_form">
 
                 <div class="mb-3">
                     <label for="brc20-mint-ticker">Ticker</label>
@@ -158,7 +170,7 @@
 
             </div>
 
-            <div class="brc20_deploy_form">
+            <div class="brc20_deploy_form option_form">
 
                 <div class="mb-3">
                     <label for="brc20-deploy-ticker">Ticker</label>
@@ -178,7 +190,7 @@
 
             </div>
 
-            <div class="brc20_transfer_form">
+            <div class="brc20_transfer_form option_form">
 
                 <hr/>
 
@@ -230,8 +242,8 @@
 
             </div>
 
-            <button class="dns_checker btn btn-outline-primary mt-3 mb-3" type="button">Check availability</button>
-            <button class="unisat_checker btn btn-outline-primary mt-3 mb-3" type="button">Check availability</button>
+            <div id="plugin_form" class="option_form" style="display: none;"></div>
+
             <span class="timer">61</span>
 
             <p>&gt;&gt; Select a feerate (sats/vB)</p>
@@ -322,8 +334,9 @@
 
 </div>
 
-<script src="js/app/app-config.1.0.0.js"></script>
-<script src="js/app/inscriptions/inscriptions.1.0.0.js"></script>
+<script src="js/app/app-config.1.0.1.js"></script>
+<script src="js/app/inscriptions/plugins.1.0.0.js"></script>
+<script src="js/app/inscriptions/inscriptions.1.0.2.js"></script>
 
 </body>
 </html>
