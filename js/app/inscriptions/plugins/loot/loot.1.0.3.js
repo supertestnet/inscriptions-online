@@ -2,6 +2,11 @@ function loot(){
 
     let _this = this;
 
+    _this.init = async function()
+    {
+
+    }
+
     _this.onPluginLoaded = async function()
     {
         $('#loot_id').onchange = async function(){
@@ -248,7 +253,8 @@ function loot(){
                             name: textToHex(svg),
                             hex: textToHex(svg),
                             mimetype: _mimetype,
-                            sha256: sha256.replace('0x','')
+                            sha256_check: sha256.replace('0x',''),
+                            sha256 : ''
                         }
                     );
                 }
@@ -268,7 +274,7 @@ function loot(){
 
                 $('#loot_checker').innerHTML = 'Please wait...(' + (i + 1) + '/' + files.length + ')';
 
-                let hash_result = await getData('https://api2.ordinalsbot.com/search?hash=' + files[i].sha256);
+                let hash_result = await getData('https://api2.ordinalsbot.com/search?hash=' + files[i].sha256_check);
 
                 console.log(hash_result);
 
@@ -303,6 +309,11 @@ function loot(){
 
             $('#loot_checker').innerHTML = 'Check if the token ids got looted already';
         }
+    }
+
+    _this.tip = async function()
+    {
+        return files.length >= 5 ? files.length * 100 : 0;
     }
 
     _this.getTitle = function(){

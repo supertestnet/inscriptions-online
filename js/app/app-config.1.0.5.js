@@ -23,9 +23,15 @@ let tippingAddress = 'bc1p5e5j2zkhzdac3mz4p4zxmrf5ujcl5ycxwf6vxcn5d85gt6g8g0jq86
 
 // enabled plugins (appear in 'special' if any)
 let plugins = [
+
+    {
+        name : 'byteperfectevm',
+        file : 'byteperfectevm.1.0.1.js',
+        instance : null
+    },
     {
         name : 'loot',
-        file : 'loot.1.0.1.js',
+        file : 'loot.1.0.3.js',
         instance : null
     }
 ];

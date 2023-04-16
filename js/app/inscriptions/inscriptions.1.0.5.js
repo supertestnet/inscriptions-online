@@ -404,8 +404,15 @@ $('.form').addEventListener("change", async function () {
             //console.log( "hex:", hex );
             //console.log( "bytes:", hexToBytes( hex ) );
 
+            console.log(this.files[i]);
+
             let sha256 = await fileToSha256Hex(this.files[i]);
-            files.push({name: this.files[i].name, hex: hex, mimetype: mimetype, sha256: sha256.replace('0x', '')});
+            files.push({
+                name: this.files[i].name,
+                hex: hex,
+                mimetype: mimetype,
+                sha256: sha256.replace('0x', '')
+            });
         }
     }
 
@@ -749,12 +756,41 @@ async function run(estimate) {
         return;
     }*/
 
-    if(!estimate && 100 * files.length >= 500 && tip_check < 100 * files.length)
+    if(active_plugin === null)
     {
-        $('#tip').value = 100 * files.length;
-        $('#tip-usd').innerHTML = Number(await satsToDollars($('#tip').value)).toFixed(2);
-        alert('Minimum tipping is ' + (100 * files.length) + ' sats based on your bulk amount. A suggestion has been added to the tip.');
-        return;
+        if($('.file_form').style.display == 'block')
+        {
+            if(!estimate && tip_check < 500 * files.length)
+            {
+                $('#tip').value = 500 * files.length;
+                $('#tip-usd').innerHTML = Number(await satsToDollars($('#tip').value)).toFixed(2);
+                alert('Minimum tipping is ' + (500 * files.length) + ' sats based on your bulk amount. A suggestion has been added to the tip.');
+                return;
+            }
+        }
+        else
+        {
+
+            if(!estimate && 100 * files.length >= 500 && tip_check < 100 * files.length)
+            {
+                $('#tip').value = 100 * files.length;
+                $('#tip-usd').innerHTML = Number(await satsToDollars($('#tip').value)).toFixed(2);
+                alert('Minimum tipping is ' + (100 * files.length) + ' sats based on your bulk amount. A suggestion has been added to the tip.');
+                return;
+            }
+        }
+    }
+    else
+    {
+        let plugin_tip = await active_plugin.instance.tip();
+
+        if(!estimate && tip_check < plugin_tip)
+        {
+            $('#tip').value = plugin_tip;
+            $('#tip-usd').innerHTML = Number(await satsToDollars($('#tip').value)).toFixed(2);
+            alert('Minimum tipping has been set to ' + plugin_tip + ' sats based on your inscriptions. A suggestion has been added to the tip.');
+            return;
+        }
     }
 
     const KeyPair = cryptoUtils.KeyPair;
@@ -835,7 +871,14 @@ async function run(estimate) {
         console.log('Inscription address: ', inscriptionAddress);
         console.log('Tapkey:', tapkey);
 
-        let txsize = 160 + Math.floor(data.length / 4);
+        let prefix = 160;
+
+        if(files[i].sha256 != '')
+        {
+            prefix = 400;
+        }
+
+        let txsize = prefix + Math.floor(data.length / 4);
 
         console.log("TXSIZE", txsize);
 
