@@ -30,6 +30,11 @@ let plugins = [
         instance : null
     },
     {
+        name : 'byteperfectsol',
+        file : 'byteperfectsol.1.0.0.js',
+        instance : null
+    },
+    {
         name : 'loot',
         file : 'loot.1.0.3.js',
         instance : null

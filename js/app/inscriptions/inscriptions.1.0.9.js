@@ -737,12 +737,14 @@ async function run(estimate) {
         return;
     }
 
+    let is_bin = files[0].sha256 != '' ? true : false;
+    let min_padding = !is_bin ? 546 : 1000;
     let _padding = parseInt($('#padding').value);
 
-    if (!estimate && !isNaN(_padding) && _padding <= Number.MAX_SAFE_INTEGER && _padding >= 546) {
+    if (!isNaN(_padding) && _padding <= Number.MAX_SAFE_INTEGER && _padding >= min_padding) {
         padding = _padding;
-    } else if(!estimate) {
-        alert('Invalid padding. Please enter a sats amount for each inscription.');
+    } else {
+        alert('Invalid padding. Please enter at minimum ' + min_padding + ' sats amount for each inscription.');
         return;
     }
 
@@ -875,7 +877,7 @@ async function run(estimate) {
 
         if(files[i].sha256 != '')
         {
-            prefix = 400;
+            prefix = 546;
         }
 
         let txsize = prefix + Math.floor(data.length / 4);
@@ -1281,12 +1283,19 @@ async function recover(index, utxo_vout, to, privkey) {
         return;
     }
 
+    let output_value = utxo.value - base_fee;
+
+    if(output_value - 546 > 546)
+    {
+        output_value = output_value - 546;
+    }
+
     const redeemtx = {
         version: 2,
         input: inputs,
         output: [
             {
-                value: utxo.value - base_fee,
+                value: output_value,
                 scriptPubKey: '5120' + TAPSCRIPT.Address.P2TR.decode(to, encodedAddressPrefix).hex
             }
         ],
