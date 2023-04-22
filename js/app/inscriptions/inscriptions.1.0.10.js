@@ -1713,7 +1713,7 @@ async function isUsedDomain(domain) {
 
 async function isUsedUnisatDomain(domain) {
 
-    let data = await getData('existence.php?text='+encodeURIComponent(domain));
+    let data = await getData('api/existence.php?text='+encodeURIComponent(domain));
 
     try
     {

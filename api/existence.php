@@ -1,4 +1,6 @@
 <?php
+header('Access-Control-Allow-Origin: *');
+
 if(!isset($_GET['text']))
 {
     echo 'error';
