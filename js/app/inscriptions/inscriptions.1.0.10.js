@@ -344,8 +344,8 @@ function showBrc20Mint() {
 }
 
 function showBrc20Transfer() {
-    $('#padding').value = '5000';
-    padding = '5000';
+    $('#padding').value = '546';
+    padding = '1200';
     files = [];
     $('#app-form').reset();
     $('.text_form').style.display = "none";
