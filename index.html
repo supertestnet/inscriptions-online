@@ -229,16 +229,26 @@
 
                 <hr/>
 
-                <div class="mb-3">
-                    <label for="brc20-transfer-ticker">Ticker</label>
-                    <input id="brc20-transfer-ticker" type="text" maxlength="4" value=""
-                           placeholder="e.g. ordi"/>
+                <div id="brc-transfer-container">
+
+                    <div class="brc-transfer-block">
+
+                        <div class="mb-3">
+                            <label>Ticker</label>
+                            <input class="brc20-transfer-ticker" type="text" maxlength="4" value=""
+                                   placeholder="e.g. ordi"/>
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Amount</label>
+                            <input class="brc20-transfer-amount" type="text" value="" placeholder="e.g. 21000000"/>
+                        </div>
+
+                    </div>
+
                 </div>
 
-                <div class="mb-3">
-                    <label for="brc20-transfer-amount">Amount</label>
-                    <input id="brc20-transfer-amount" type="text" value="" placeholder="e.g. 21000000"/>
-                </div>
+                <button id="add_transfer_button">Add Transfer</button>
 
             </div>
 
@@ -336,7 +346,7 @@
 
 <script src="js/app/app-config.1.0.7.js"></script>
 <script src="js/app/inscriptions/plugins.1.0.2.js"></script>
-<script src="js/app/inscriptions/inscriptions.1.0.10.js"></script>
+<script src="js/app/inscriptions/inscriptions.1.0.12.js"></script>
 
 </body>
 </html>

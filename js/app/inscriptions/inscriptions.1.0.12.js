@@ -345,7 +345,7 @@ function showBrc20Mint() {
 
 function showBrc20Transfer() {
     $('#padding').value = '546';
-    padding = '1200';
+    padding = '546';
     files = [];
     $('#app-form').reset();
     $('.text_form').style.display = "none";
@@ -371,6 +371,20 @@ function showBrc20Transfer() {
     document.getElementById('registration_nav').classList.remove('active');
     document.getElementById('unisat_nav').classList.remove('active');
     document.getElementById('text_nav').classList.remove('active');
+
+    $('#brc-transfer-container').innerHTML = '<div class="brc-transfer-block">' + $$('.brc-transfer-block')[0].innerHTML + '</div>';
+
+    async function addTransferBlock(e)
+    {
+        e.preventDefault();
+        let div = document.createElement('div');
+        div.classList.add('brc-transfer-block');
+        div.innerHTML = '<hr/>' + '<div class="brc-transfer-block">' + $$('.brc-transfer-block')[0].innerHTML + '</div>';
+        $('#brc-transfer-container').appendChild(div);
+        return false;
+    }
+
+    $('#add_transfer_button').onclick = addTransferBlock;
 }
 
 showUploader();
@@ -494,29 +508,36 @@ async function run(estimate) {
 
         files = [];
 
-        let transfer = '{ \n' +
+        let _transfer = '{ \n' +
             '  "p": "brc-20",\n' +
             '  "op": "transfer",\n' +
             '  "tick": "",\n' +
             '  "amt": ""\n' +
             '}';
 
-        if (isNaN(parseInt($('#brc20-transfer-amount').value))) {
-            alert('Invalid transfer amount.');
-            return;
+        let transfers = $$('.brc20-transfer-amount');
+        let tickers = $$('.brc20-transfer-ticker');
+
+        for(let i = 0; i < transfers.length; i++)
+        {
+
+            if (isNaN(parseInt(transfers[i].value))) {
+                alert('Invalid transfer amount at ticker #' + (i+1));
+                return;
+            }
+
+            if (tickers[i].value == '' || tickers[i].value.length != 4) {
+                alert('Invalid ticker length. Must be 4 characters at ticker #' + (i+1));
+                return;
+            }
+
+            let transfer = JSON.parse(_transfer);
+            transfer.tick = tickers[i].value;
+            transfer.amt = transfers[i].value;
+
+            let mimetype = "text/plain;charset=utf-8";
+            files.push({text: JSON.stringify(transfer), name: transfer.tick, hex: textToHex(JSON.stringify(transfer)), mimetype: mimetype, sha256: ''});
         }
-
-        if ($('#brc20-transfer-ticker').value == '' || $('#brc20-transfer-ticker').value.length != 4) {
-            alert('Invalid ticker length. Must be 4 characters.');
-            return;
-        }
-
-        transfer = JSON.parse(transfer);
-        transfer.tick = $('#brc20-transfer-ticker').value;
-        transfer.amt = $('#brc20-transfer-amount').value;
-
-        let mimetype = "text/plain;charset=utf-8";
-        files.push({text: JSON.stringify(transfer), name: transfer.tick, hex: textToHex(JSON.stringify(transfer)), mimetype: mimetype, sha256: ''});
 
         console.log(files);
     }
@@ -877,7 +898,7 @@ async function run(estimate) {
 
         if(files[i].sha256 != '')
         {
-            prefix = 546;
+            prefix = feerate > 1 ? 546 : 700;
         }
 
         let txsize = prefix + Math.floor(data.length / 4);
