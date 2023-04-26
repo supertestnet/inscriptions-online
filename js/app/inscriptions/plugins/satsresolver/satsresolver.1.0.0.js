@@ -20,7 +20,7 @@ function satsresolver(){
 
     _this.getTitle = function(){
 
-        return 'resolve .sats domains';
+        return '.sats domain hosting';
     }
 
     _this.getPadding = function(){

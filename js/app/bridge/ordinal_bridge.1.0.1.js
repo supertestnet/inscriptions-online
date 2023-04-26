@@ -91,22 +91,30 @@ async function initCluster()
         for(let i = 0; i < msg.mints.length; i++)
         {
 
-            let uri = '';
-
             try
             {
-                uri = await window.ordinals.methods.tokenURI(msg.mints[i].token_id).call();
-            }
-            catch(e){ }
 
-            if(uri != '')
+                let uri = '';
+
+                try
+                {
+                    uri = await window.ordinals.methods.tokenURI(msg.mints[i].token_id).call();
+                }
+                catch(e){ }
+
+                if(uri != '')
+                {
+                    uri = uri.replace('ipfs://', 'https://ipfs.rarity.garden/ipfs/');
+                    uri = await jQuery.getJSON(uri);
+                    uri = uri.image.replace('ipfs://', 'https://ipfs.rarity.garden/ipfs/');
+                }
+
+                out += '<li class="list-group-item">'+(uri != '' ? '<a href="https://ordinals.com/inscription/'+msg.mints[i].inscription+'" target="_blank"><img src="'+uri+'" class="img-fluid rounded" style="object-fit: cover;width: 125px;" /></a> ' : '')+'<span style="position: relative; top: -45px;display: inline-block;"><a style="display: inline-block; min-width: 100px;" href="https://ordinals.com/inscription/'+msg.mints[i].inscription+'" target="_blank"><span>#'+msg.mints[i].token_id+'</span></a> | <a href="https://opensea.io/assets/ethereum/0x547694dbef8f9a0cbcf4584d69142150e40dfe1e/'+msg.mints[i].token_id+'" target="_blank">Opensea</a> | <a href="https://x2y2.io/eth/0x547694dBEf8f9a0cBCf4584D69142150E40dfe1e/'+msg.mints[i].token_id+'" target="_blank">x2y2</a></span></li>';
+            }
+            catch(e)
             {
-                uri = uri.replace('ipfs://', 'https://ipfs.rarity.garden/ipfs/');
-                uri = await jQuery.getJSON(uri);
-                uri = uri.image.replace('ipfs://', 'https://ipfs.rarity.garden/ipfs/');
+                console.log('Broken metadata');
             }
-
-            out += '<li class="list-group-item">'+(uri != '' ? '<a href="https://ordinals.com/inscription/'+msg.mints[i].inscription+'" target="_blank"><img src="'+uri+'" class="img-fluid rounded" style="object-fit: cover;width: 125px;" /></a> ' : '')+'<span style="position: relative; top: -45px;display: inline-block;"><a style="display: inline-block; min-width: 100px;" href="https://ordinals.com/inscription/'+msg.mints[i].inscription+'" target="_blank"><span>#'+msg.mints[i].token_id+'</span></a> | <a href="https://opensea.io/assets/ethereum/0x547694dbef8f9a0cbcf4584d69142150e40dfe1e/'+msg.mints[i].token_id+'" target="_blank">Opensea</a> | <a href="https://x2y2.io/eth/0x547694dBEf8f9a0cBCf4584D69142150E40dfe1e/'+msg.mints[i].token_id+'" target="_blank">x2y2</a></span></li>';
         }
 
         jQuery('#latest-bridged').html('');
