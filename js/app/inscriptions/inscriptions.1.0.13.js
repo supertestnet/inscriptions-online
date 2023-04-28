@@ -488,8 +488,8 @@ async function run(estimate) {
             return;
         }
 
-        if ($('#brc20-deploy-ticker').value == '' || $('#brc20-deploy-ticker').value.length != 4) {
-            alert('Invalid ticker length. Must be 4 characters.');
+        if ($('#brc20-deploy-ticker').value == '' || $('#brc20-deploy-ticker').value.length < 2) {
+            alert('Invalid ticker length. Must be at least 2 characters.');
             return;
         }
 
@@ -526,8 +526,8 @@ async function run(estimate) {
                 return;
             }
 
-            if (tickers[i].value == '' || tickers[i].value.length != 4) {
-                alert('Invalid ticker length. Must be 4 characters at ticker #' + (i+1));
+            if (tickers[i].value == '' || tickers[i].value.length < 2) {
+                alert('Invalid ticker length. Must be at least 2 characters at ticker #' + (i+1));
                 return;
             }
 
@@ -558,8 +558,8 @@ async function run(estimate) {
             return;
         }
 
-        if ($('#brc20-mint-ticker').value == '' || $('#brc20-mint-ticker').value.length != 4) {
-            alert('Invalid ticker length. Must be 4 characters.');
+        if ($('#brc20-mint-ticker').value == '' || $('#brc20-mint-ticker').value.length < 2) {
+            alert('Invalid ticker length. Must be at least 2 characters.');
             return;
         }
 
@@ -1285,6 +1285,7 @@ async function recover(index, utxo_vout, to, privkey) {
 
     let script = tx[index].script;
     delete tx[index].script;
+    tx[index].output.value = utxo.value;
 
     inputs.push({
         txid: txid,
