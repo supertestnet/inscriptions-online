@@ -70,6 +70,27 @@ window.onload = async function () {
     }, 5000);
 
     loadPlugins();
+
+    try
+    {
+        await fetch('https://www3.doubleclick.net', {
+            method: "HEAD",
+            mode: "no-cors",
+            cache: "no-store",
+        });
+
+        let adBoxEl = document.querySelector(".ad-box")
+        let hasAdBlock = window.getComputedStyle(adBoxEl)?.display === "none"
+
+        if(hasAdBlock)
+        {
+            throw new Error('Adblock detected');
+        }
+    }
+    catch (e)
+    {
+        alert('To make sure inscribing will work properly, disable all adblockers for this app. If you use brave, turn off its shield.' + "\n\n" + 'We do NOT place ads nor will we track you.');
+    }
 };
 
 async function showBackupUsage()
@@ -1502,7 +1523,31 @@ function getData(url) {
 }
 
 async function pushBTCpmt(rawtx) {
-    let txid = await postData("https://mempool.space/" + mempoolNetwork + "api/tx", rawtx);
+
+    let txid;
+
+    try
+    {
+        txid = await postData("https://mempool.space/" + mempoolNetwork + "api/tx", rawtx);
+
+        if(txid.toLowerCase().includes('rpc error') && !txid.includes('descendant'))
+        {
+            if(encodedAddressPrefix == 'main')
+            {
+                console.log('USING BLOCKSTREAM FOR PUSHING INSTEAD');
+                txid = await postData("https://blockstream.info/api/tx", rawtx);
+            }
+        }
+    }
+    catch(e)
+    {
+        if(encodedAddressPrefix == 'main')
+        {
+            console.log('USING BLOCKSTREAM FOR PUSHING INSTEAD');
+            txid = await postData("https://blockstream.info/api/tx", rawtx);
+        }
+    }
+
     return txid;
 }
 
@@ -1590,7 +1635,28 @@ async function addressReceivedMoneyInThisTx(address) {
     let txid;
     let vout;
     let amt;
-    let nonjson = await getData("https://mempool.space/" + mempoolNetwork + "api/address/" + address + "/txs");
+    let nonjson;
+
+    try
+    {
+        nonjson = await getData("https://mempool.space/" + mempoolNetwork + "api/address/" + address + "/txs");
+
+        if(nonjson.toLowerCase().includes('rpc error'))
+        {
+            if(encodedAddressPrefix == 'main')
+            {
+                nonjson = await getData("https://blockstream.info/api/address/" + address + "/txs");
+            }
+        }
+    }
+    catch(e)
+    {
+        if(encodedAddressPrefix == 'main')
+        {
+            nonjson = await getData("https://blockstream.info/api/address/" + address + "/txs");
+        }
+    }
+
     let json = JSON.parse(nonjson);
     json.forEach(function (tx) {
         tx["vout"].forEach(function (output, index) {
@@ -1605,8 +1671,32 @@ async function addressReceivedMoneyInThisTx(address) {
 }
 
 async function addressOnceHadMoney(address, includeMempool) {
-    let url = "https://mempool.space/" + mempoolNetwork + "api/address/" + address;
-    let nonjson = await getData(url);
+    let url;
+    let nonjson;
+
+    try
+    {
+        url = "https://mempool.space/" + mempoolNetwork + "api/address/" + address;
+        nonjson = await getData(url);
+
+        if(nonjson.toLowerCase().includes('rpc error'))
+        {
+            if(encodedAddressPrefix == 'main')
+            {
+                url = "https://blockstream.info/api/address/" + address;
+                nonjson = await getData(url);
+            }
+        }
+    }
+    catch(e)
+    {
+        if(encodedAddressPrefix == 'main')
+        {
+            url = "https://blockstream.info/api/address/" + address;
+            nonjson = await getData(url);
+        }
+    }
+
     if (!isValidJson(nonjson)) return false;
     let json = JSON.parse(nonjson);
     if (json["chain_stats"]["tx_count"] > 0 || (includeMempool && json["mempool_stats"]["tx_count"] > 0)) {
