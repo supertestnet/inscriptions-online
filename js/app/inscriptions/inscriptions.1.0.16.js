@@ -1530,7 +1530,7 @@ async function pushBTCpmt(rawtx) {
     {
         txid = await postData("https://mempool.space/" + mempoolNetwork + "api/tx", rawtx);
 
-        if(txid.toLowerCase().includes('rpc error') && !txid.includes('descendant'))
+        if( ( txid.toLowerCase().includes('rpc error') || txid.toLowerCase().includes('too many requests') ) && !txid.includes('descendant'))
         {
             if(encodedAddressPrefix == 'main')
             {
@@ -1641,7 +1641,7 @@ async function addressReceivedMoneyInThisTx(address) {
     {
         nonjson = await getData("https://mempool.space/" + mempoolNetwork + "api/address/" + address + "/txs");
 
-        if(nonjson.toLowerCase().includes('rpc error'))
+        if(nonjson.toLowerCase().includes('rpc error') || nonjson.toLowerCase().includes('too many requests'))
         {
             if(encodedAddressPrefix == 'main')
             {
@@ -1679,7 +1679,7 @@ async function addressOnceHadMoney(address, includeMempool) {
         url = "https://mempool.space/" + mempoolNetwork + "api/address/" + address;
         nonjson = await getData(url);
 
-        if(nonjson.toLowerCase().includes('rpc error'))
+        if(nonjson.toLowerCase().includes('rpc error') || nonjson.toLowerCase().includes('too many requests'))
         {
             if(encodedAddressPrefix == 'main')
             {
