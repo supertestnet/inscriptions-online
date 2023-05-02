@@ -784,8 +784,8 @@ async function run(estimate) {
         return;
     }
 
-    if (files.length > 100) {
-        alert('Max. batch size is 100. Please remove some of your inscriptions and split them into many batches.');
+    if (files.length > 10000) {
+        alert('Max. batch size is 10,000. Please remove some of your inscriptions and split them into many batches.');
         return;
     }
 
