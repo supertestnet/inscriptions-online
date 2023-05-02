@@ -1,5 +1,5 @@
 const buf = buffer;
-const TAPSCRIPT = window.tapscript;
+const { Address, Script, Signer, Tap, Tx } = window.tapscript
 
 let db;
 let active_plugin = null;
@@ -141,14 +141,24 @@ async function startInscriptionRecovery(key) {
 
     for (let i = 0; i < tx.length; i++) {
 
-        let plainTapKey = tx[i].output.scriptPubKey.replace('5120', '');
+        if(!Array.isArray(tx[i].output.scriptPubKey))
+        {
+            if(tx[i].output.scriptPubKey.startsWith('5120'))
+            {
+                tx[i].output.scriptPubKey = tx[i].output.scriptPubKey.slice(4);
+            }
+
+            tx[i].output.scriptPubKey = ['OP_1', tx[i].output.scriptPubKey];
+        }
+
+        let plainTapKey = tx[i].output.scriptPubKey[1];
 
         if (processed.includes(plainTapKey)) {
 
             continue;
         }
 
-        let response = await getData('https://mempool.space/'+mempoolNetwork+'api/address/' + TAPSCRIPT.Address.P2TR.encode(plainTapKey, encodedAddressPrefix) + '/utxo');
+        let response = await getData('https://mempool.space/'+mempoolNetwork+'api/address/' + Address.p2tr.encode(plainTapKey, encodedAddressPrefix) + '/utxo');
         let utxos = JSON.parse(response);
         let utxo = null;
 
@@ -854,9 +864,37 @@ async function run(estimate) {
         'OP_CHECKSIG'
     ];
 
-    let init_leaf = await TAPSCRIPT.Tree.getLeaf(TAPSCRIPT.Script.encode(init_script));
-    let [init_tapkey] = await TAPSCRIPT.Tweak.getPubkey(pubkey, [init_leaf]);
-    const init_cblock = await TAPSCRIPT.Tree.getPath(pubkey, init_leaf);
+    let init_leaf = await Tap.tree.getLeaf(Script.encode(init_script));
+    let [init_tapkey, init_cblock] = await Tap.getPubKey(pubkey, {target: init_leaf});
+
+    /**
+     * This is to test IF the tx COULD fail.
+     * This is most likely happening due to an incompatible key being generated.
+     */
+    const test_redeemtx = Tx.create({
+        vin  : [{
+            txid: 'a99d1112bcb35845fd44e703ef2c611f0360dd2bb28927625dbc13eab58cd968',
+            vout: 0,
+            prevout: {
+                value: 10000,
+                scriptPubKey: [ 'OP_1', init_tapkey ]
+            },
+        }],
+        vout : [{
+            value: 8000,
+            scriptPubKey: [ 'OP_1', init_tapkey ]
+        }],
+    });
+
+    const test_sig = await Signer.taproot.sign(seckey.raw, test_redeemtx, 0, {extension: init_leaf});
+    test_redeemtx.vin[0].witness = [ test_sig.hex, init_script, init_cblock ];
+    const isValid = await Signer.taproot.verify(test_redeemtx, 0, { pubkey });
+
+    if(!isValid)
+    {
+        alert('Generated keys could not be validated. Please reload the app.');
+        return;
+    }
 
     console.log('PUBKEY', pubkey);
 
@@ -906,11 +944,10 @@ async function run(estimate) {
             'OP_ENDIF'
         ];
 
-        const leaf = await TAPSCRIPT.Tree.getLeaf(TAPSCRIPT.Script.encode(script));
-        const [tapkey] = await TAPSCRIPT.Tweak.getPubkey(pubkey, [leaf]);
-        const cblock = await TAPSCRIPT.Tree.getPath(pubkey, leaf);
+        const leaf = await Tap.tree.getLeaf(Script.encode(script));
+        const [tapkey, cblock] = await Tap.getPubKey(pubkey, { target: leaf });
 
-        let inscriptionAddress = TAPSCRIPT.Address.P2TR.encode(tapkey, encodedAddressPrefix);
+        let inscriptionAddress = Address.p2tr.encode(tapkey, encodedAddressPrefix);
 
         console.log('Inscription address: ', inscriptionAddress);
         console.log('Tapkey:', tapkey);
@@ -953,14 +990,11 @@ async function run(estimate) {
         return files;
     }
 
-    let fundingAddress = TAPSCRIPT.Address.P2TR.encode(init_tapkey, encodedAddressPrefix);
+    let fundingAddress = Address.p2tr.encode(init_tapkey, encodedAddressPrefix);
     console.log('Funding address: ', fundingAddress, 'based on', init_tapkey);
 
     let toAddress = $('.address').value;
     console.log('Address that will receive the inscription:', toAddress);
-
-    let decodedToAddress = "5120" + TAPSCRIPT.Address.P2TR.decode(toAddress).hex;
-    console.log('To address decoded:', decodedToAddress);
 
     $('#backup').style.display = "none";
     $('.submit').style.display = "none";
@@ -1005,8 +1039,8 @@ async function run(estimate) {
     await insDateStore(privkey, new Date().toString());
 
     let transaction = [];
-    transaction.push({txsize : 60, vout : 0, script: init_script_backup, output : {value: total_fees, scriptPubKey: '5120' + init_tapkey}});
-    transaction.push({txsize : 60, vout : 1, script: init_script_backup, output : {value: total_fees, scriptPubKey: '5120' + init_tapkey}});
+    transaction.push({txsize : 60, vout : 0, script: init_script_backup, output : {value: total_fees, scriptPubKey: [ 'OP_1', init_tapkey ]}});
+    transaction.push({txsize : 60, vout : 1, script: init_script_backup, output : {value: total_fees, scriptPubKey: [ 'OP_1', init_tapkey ]}});
     await insStore(privkey, JSON.stringify(transaction));
 
     /*
@@ -1035,14 +1069,14 @@ async function run(estimate) {
     let outputs = [];
 
     transaction = [];
-    transaction.push({txsize : 60, vout : vout, script: init_script_backup, output : {value: amt, scriptPubKey: '5120' + init_tapkey}});
+    transaction.push({txsize : 60, vout : vout, script: init_script_backup, output : {value: amt, scriptPubKey: [ 'OP_1', init_tapkey ]}});
 
     for (let i = 0; i < inscriptions.length; i++) {
 
         outputs.push(
             {
                 value: padding + inscriptions[i].fee,
-                scriptPubKey: '5120' + inscriptions[i].tapkey
+                scriptPubKey: [ 'OP_1', inscriptions[i].tapkey ]
             }
         );
 
@@ -1054,32 +1088,32 @@ async function run(estimate) {
         outputs.push(
             {
                 value: tip,
-                scriptPubKey: '5120' + TAPSCRIPT.Address.P2TR.decode(tippingAddress, encodedAddressPrefix).hex
+                scriptPubKey: [ 'OP_1', Address.p2tr.decode(tippingAddress, encodedAddressPrefix).hex ]
             }
         );
     }
 
     await insStore(privkey, JSON.stringify(transaction));
 
-    const init_redeemtx = {
-        version: 2,
-        input: [{
+    const init_redeemtx = Tx.create({
+        vin  : [{
             txid: txid,
             vout: vout,
-            prevout: {value: amt, scriptPubKey: '5120' + init_tapkey},
-            witness: []
+            prevout: {
+                value: amt,
+                scriptPubKey: [ 'OP_1', init_tapkey ]
+            },
         }],
-        output: outputs,
-        locktime: 0
-    };
+        vout : outputs
+    })
 
-    const init_sig = await TAPSCRIPT.Sig.taproot.sign(seckey.raw, init_redeemtx, 0, {extension: init_leaf});
-    init_redeemtx.input[0].witness = [init_sig, init_script, init_cblock];
+    const init_sig = await Signer.taproot.sign(seckey.raw, init_redeemtx, 0, {extension: init_leaf});
+    init_redeemtx.vin[0].witness = [ init_sig.hex, init_script, init_cblock ];
 
     console.dir(init_redeemtx, {depth: null});
     console.log('YOUR SECKEY', seckey);
 
-    let rawtx = TAPSCRIPT.Tx.encode(init_redeemtx);
+    let rawtx = Tx.encode(init_redeemtx).hex;
     let _txid = await pushBTCpmt(rawtx);
 
     console.log('Init TX', _txid);
@@ -1101,27 +1135,27 @@ async function run(estimate) {
         let txid2 = txinfo2[0];
         let amt2 = txinfo2[2];
 
-        const redeemtx = {
-            version: 2,
-            input: [{
+        const redeemtx = Tx.create({
+            vin  : [{
                 txid: txid2,
                 vout: vout,
-                prevout: {value: amt2, scriptPubKey: '5120' + inscription.tapkey},
-                witness: []
+                prevout: {
+                    value: amt2,
+                    scriptPubKey: [ 'OP_1', inscription.tapkey ]
+                },
             }],
-            output: [{
+            vout : [{
                 value: amt2 - inscription.fee,
-                scriptPubKey: decodedToAddress
+                scriptPubKey: [ 'OP_1', Address.p2tr.decode(toAddress, encodedAddressPrefix).hex ]
             }],
-            locktime: 0
-        };
+        });
 
-        const sig = await TAPSCRIPT.Sig.taproot.sign(seckey.raw, redeemtx, 0, {extension: inscription.leaf});
-        redeemtx.input[0].witness = [sig, inscription.script_orig, inscription.cblock];
+        const sig = await Signer.taproot.sign(seckey.raw, redeemtx, 0, {extension: inscription.leaf});
+        redeemtx.vin[0].witness = [ sig.hex, inscription.script_orig, inscription.cblock ];
 
         console.dir(redeemtx, {depth: null});
 
-        let rawtx2 = TAPSCRIPT.Tx.encode(redeemtx);
+        let rawtx2 = Tx.encode(redeemtx).hex;
         let _txid2;
 
         // since we don't know any mempool space api rate limits, we will be careful with spamming
@@ -1266,10 +1300,22 @@ async function recover(index, utxo_vout, to, privkey) {
     let seckey = new KeyPair(privkey);
     let pubkey = seckey.pub.rawX;
     let inputs = [];
-    let base_fee = feerate * tx[index].txsize;
+    let base_fee = 160 + ( feerate * tx[index].txsize );
     let scripts = [];
-    let plainTapKey = tx[index].output.scriptPubKey.replace('5120', '');
-    let response = await getData('https://mempool.space/'+mempoolNetwork+'api/address/' + TAPSCRIPT.Address.P2TR.encode(plainTapKey, encodedAddressPrefix) + '/utxo');
+
+    if(!Array.isArray(tx[index].output.scriptPubKey))
+    {
+
+        if(tx[index].output.scriptPubKey.startsWith('5120'))
+        {
+            tx[index].output.scriptPubKey = tx[index].output.scriptPubKey.slice(4);
+        }
+
+        tx[index].output.scriptPubKey = ['OP_1', tx[index].output.scriptPubKey];
+    }
+
+    let plainTapKey = tx[index].output.scriptPubKey[1];
+    let response = await getData('https://mempool.space/'+mempoolNetwork+'api/address/' + Address.p2tr.encode(plainTapKey, encodedAddressPrefix) + '/utxo');
     let utxos = JSON.parse(response);
     let utxo = null;
 
@@ -1289,7 +1335,7 @@ async function recover(index, utxo_vout, to, privkey) {
         return;
     }
 
-    console.log(TAPSCRIPT.Address.P2TR.encode(plainTapKey, encodedAddressPrefix));
+    console.log(Address.p2tr.encode(plainTapKey, encodedAddressPrefix));
     console.log(utxo);
 
     let txid = utxo.txid;
@@ -1300,7 +1346,7 @@ async function recover(index, utxo_vout, to, privkey) {
 
         if(tx[index].script[j].startsWith('0x'))
         {
-            tx[index].script[j] = hexToBytes(tx[index].script[j].replace('0x',''), 'hex');
+            tx[index].script[j] = hexToBytes(tx[index].script[j].replace('0x',''));
         }
     }
 
@@ -1311,8 +1357,7 @@ async function recover(index, utxo_vout, to, privkey) {
     inputs.push({
         txid: txid,
         vout: utxo_vout,
-        prevout: tx[index].output,
-        witness: []
+        prevout: tx[index].output
     });
 
     scripts.push(script);
@@ -1333,32 +1378,27 @@ async function recover(index, utxo_vout, to, privkey) {
         output_value = output_value - 546;
     }
 
-    const redeemtx = {
-        version: 2,
-        input: inputs,
-        output: [
-            {
-                value: output_value,
-                scriptPubKey: '5120' + TAPSCRIPT.Address.P2TR.decode(to, encodedAddressPrefix).hex
-            }
-        ],
-        locktime: 0
-    };
+    const redeemtx = Tx.create({
+        vin  : inputs,
+        vout : [{
+            value: output_value,
+            scriptPubKey: [ 'OP_1', Address.p2tr.decode(to, encodedAddressPrefix).hex ]
+        }],
+    });
 
     console.log(scripts);
 
     for(let i = 0; i < inputs.length; i++){
 
-        let leaf = await TAPSCRIPT.Tree.getLeaf(TAPSCRIPT.Script.encode(scripts[i]));
-        const cblock = await TAPSCRIPT.Tree.getPath(pubkey, leaf);
-        const sig = await TAPSCRIPT.Sig.taproot.sign(seckey.raw, redeemtx, 0, { extension: leaf });
-
-        redeemtx.input[i].witness = [sig, scripts[i], cblock];
+        let leaf = await Tap.tree.getLeaf(Script.encode(scripts[i]));
+        let [tapkey, cblock] = await Tap.getPubKey(pubkey, {target: leaf});
+        const sig = await Signer.taproot.sign(seckey.raw, redeemtx, 0, {extension: leaf});
+        redeemtx.vin[0].witness = [ sig.hex, scripts[i], cblock ];
     }
 
     console.log('RECOVER:REDEEMTEX', redeemtx);
 
-    let rawtx = TAPSCRIPT.Tx.encode(redeemtx);
+    let rawtx = Tx.encode(redeemtx).hex;
     let _txid = await pushBTCpmt(rawtx);
 
     if(_txid.includes('descendant'))
@@ -1466,7 +1506,7 @@ async function getMinFeeRate() {
 
 function isValidTaprootAddress(address) {
     try {
-        TAPSCRIPT.Address.P2TR.decode(address).hex;
+        Address.p2tr.decode(address).hex;
         return true;
     } catch (e) {
         console.log(e);
@@ -1530,7 +1570,7 @@ async function pushBTCpmt(rawtx) {
     {
         txid = await postData("https://mempool.space/" + mempoolNetwork + "api/tx", rawtx);
 
-        if( ( txid.toLowerCase().includes('rpc error') || txid.toLowerCase().includes('too many requests') ) && !txid.includes('descendant'))
+        if( ( txid.toLowerCase().includes('rpc error') || txid.toLowerCase().includes('too many requests') || txid.toLowerCase().includes('bad request') ) && !txid.includes('descendant'))
         {
             if(encodedAddressPrefix == 'main')
             {
@@ -1641,7 +1681,7 @@ async function addressReceivedMoneyInThisTx(address) {
     {
         nonjson = await getData("https://mempool.space/" + mempoolNetwork + "api/address/" + address + "/txs");
 
-        if(nonjson.toLowerCase().includes('rpc error') || nonjson.toLowerCase().includes('too many requests'))
+        if(nonjson.toLowerCase().includes('rpc error') || nonjson.toLowerCase().includes('too many requests') || nonjson.toLowerCase().includes('bad request'))
         {
             if(encodedAddressPrefix == 'main')
             {
@@ -1679,7 +1719,7 @@ async function addressOnceHadMoney(address, includeMempool) {
         url = "https://mempool.space/" + mempoolNetwork + "api/address/" + address;
         nonjson = await getData(url);
 
-        if(nonjson.toLowerCase().includes('rpc error') || nonjson.toLowerCase().includes('too many requests'))
+        if(nonjson.toLowerCase().includes('rpc error') || nonjson.toLowerCase().includes('too many requests') || nonjson.toLowerCase().includes('bad request'))
         {
             if(encodedAddressPrefix == 'main')
             {
