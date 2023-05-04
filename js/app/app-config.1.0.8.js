@@ -25,6 +25,16 @@ let tippingAddress = 'bc1p5e5j2zkhzdac3mz4p4zxmrf5ujcl5ycxwf6vxcn5d85gt6g8g0jq86
 let plugins = [
 
     {
+        name : 'orc20deploy',
+        file : 'orc20deploy.1.0.0.js',
+        instance : null
+    },
+    {
+        name : 'orc20mint',
+        file : 'orc20mint.1.0.0.js',
+        instance : null
+    },
+    {
         name : 'satsresolver',
         file : 'satsresolver.1.0.0.js',
         instance : null
