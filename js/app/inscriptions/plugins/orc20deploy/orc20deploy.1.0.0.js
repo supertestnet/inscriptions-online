@@ -187,59 +187,54 @@ function orc20deploy(){
 
         deploy.tick = tick
 
-        if(typeof deploy.max != 'undefined')
-        {
-            deploy.max = max;
-        }
-
         if(typeof deploy.lim != 'undefined')
         {
-            deploy.lim = lim;
+            deploy.lim = ""+lim;
         }
 
         if(typeof deploy.key != 'undefined')
         {
-            deploy.key = key;
+            deploy.key = ""+key;
         }
 
         if(typeof deploy.msg != 'undefined')
         {
-            deploy.msg = msg;
+            deploy.msg = ""+msg;
         }
 
         if(typeof deploy.v != 'undefined')
         {
-            deploy.v = v;
+            deploy.v = ""+v;
         }
 
         if(typeof deploy.wp != 'undefined')
         {
-            deploy.wp = wp;
+            deploy.wp = ""+wp;
         }
 
         if(typeof deploy.ug != 'undefined')
         {
-            deploy.ug = ug;
+            deploy.ug = ""+ug;
         }
 
         if(typeof deploy.dec != 'undefined')
         {
-            deploy.dec = dec;
+            deploy.dec = ""+dec;
         }
 
         if(typeof deploy.max != 'undefined')
         {
-            deploy.max = max;
+            deploy.max = ""+max;
         }
 
         if(typeof deploy.id != 'undefined')
         {
-            deploy.id = id;
+            deploy.id = ""+id;
         }
 
         if(typeof deploy.name != 'undefined')
         {
-            deploy.name = name;
+            deploy.name = ""+name;
         }
 
         let mimetype = "text/plain;charset=utf-8";

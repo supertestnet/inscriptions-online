@@ -111,17 +111,17 @@ function orc20mint(){
 
         if(typeof mint.msg != 'undefined')
         {
-            mint.msg = msg;
+            mint.msg = ""+msg;
         }
 
         if(typeof mint.id != 'undefined')
         {
-            mint.id = id;
+            mint.id = ""+id;
         }
 
         if(typeof mint.amt != 'undefined')
         {
-            mint.amt = amt;
+            mint.amt = ""+amt;
         }
 
         let mimetype = "text/plain;charset=utf-8";
