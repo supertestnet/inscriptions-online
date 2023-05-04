@@ -211,6 +211,7 @@
 
         async function getBitcoinPriceFromCoinbase() {
             let data = await getData("https://api.coinbase.com/v2/prices/BTC-USD/spot");
+            if ( !isValidJson( data ) ) return 0;
             let json = JSON.parse(data);
             let price = json["data"]["amount"];
             return price;
@@ -218,6 +219,7 @@
 
         async function getBitcoinPriceFromKraken() {
             let data = await getData("https://api.kraken.com/0/public/Ticker?pair=XBTUSD");
+            if ( !isValidJson( data ) ) return 0;
             let json = JSON.parse(data);
             let price = json["result"]["XXBTZUSD"]["a"][0];
             return price;
@@ -225,6 +227,7 @@
 
         async function getBitcoinPriceFromCoindesk() {
             let data = await getData("https://api.coindesk.com/v1/bpi/currentprice.json");
+            if ( !isValidJson( data ) ) return 0;
             let json = JSON.parse(data);
             let price = json["bpi"]["USD"]["rate_float"];
             return price;
@@ -232,6 +235,7 @@
 
         async function getBitcoinPriceFromGemini() {
             let data = await getData("https://api.gemini.com/v2/ticker/BTCUSD");
+            if ( !isValidJson( data ) ) return 0;
             let json = JSON.parse(data);
             let price = json["bid"];
             return price;
@@ -239,6 +243,7 @@
 
         async function getBitcoinPriceFromBybit() {
             let data = await getData("https://api-testnet.bybit.com/derivatives/v3/public/order-book/L2?category=linear&symbol=BTCUSDT");
+            if ( !isValidJson( data ) ) return 0;
             let json = JSON.parse(data);
             let price = json["result"]["b"][0][0];
             return price;
